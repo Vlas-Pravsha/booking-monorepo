@@ -1,0 +1,24 @@
+schema: spec-driven
+
+# Project context
+# This is shown to AI when creating artifacts.
+context: |
+  Project: table-reserve.com Smart Booking System
+  Tech Stack: Next.js 16 (App Router), React 19, TypeScript 5.8, Tailwind CSS 4, shadcn/ui, Redux Toolkit, TanStack Query, Zod.
+  Architecture: Feature-Sliced Design (FSD).
+  Market: Ukrainian (UI text must be in uk-UA).
+  Multi-tenancy: Domain-based [domain] isolation for restaurants.
+  Guides: Detailed guides are available in openspec/specs/guides/ (UI_ARCHITECTURE.md, ERROR_DESIGN.md, etc.).
+
+# Per-artifact rules
+rules:
+  spec:
+    - Always reference relevant guides from openspec/specs/guides/
+    - Ensure all user-facing text in the spec is in Ukrainian
+    - Include a "Phased Task List" with verification steps
+  proposal:
+    - Keep proposals concise and focused on architectural alignment
+    - Always include a "Non-goals" section
+  tasks:
+    - Break tasks into small, verifiable chunks
+    - Include lint/typecheck steps (pnpm check) in the task list

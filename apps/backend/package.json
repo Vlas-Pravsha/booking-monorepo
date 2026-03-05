@@ -1,0 +1,17 @@
+{
+  "name": "hono",
+  "type": "module",
+  "dependencies": {
+    "@clerk/hono": "^0.0.3",
+    "@prisma/client": "^6.19.2",
+    "hono": "^4.12.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "prisma": "6",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@9.15.3"
+}
