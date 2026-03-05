@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { restaurantApi } from "@/entities/restaurant";
+import { TenantFooter } from "@/widgets/tenant/footer";
 import {
   RestaurantAbout,
   RestaurantBookingInfo,
@@ -14,6 +15,9 @@ import {
   RestaurantNavigation,
   RestaurantReviews,
 } from "@/widgets/tenant/restaurant";
+
+import { RestaurantNotFound } from "./restaurant-not-found";
+import { RestaurantSkeleton } from "./restaurant-skeleton";
 
 interface RestaurantBookingPageProps {
   domain: string;
@@ -27,32 +31,10 @@ export function RestaurantBookingPage({ domain }: RestaurantBookingPageProps) {
   });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-3 h-3 bg-white/80 rounded-full animate-pulse"
-            style={{ animationDelay: "0ms" }}
-          />
-          <div
-            className="w-3 h-3 bg-white/60 rounded-full animate-pulse"
-            style={{ animationDelay: "150ms" }}
-          />
-          <div
-            className="w-3 h-3 bg-white/40 rounded-full animate-pulse"
-            style={{ animationDelay: "300ms" }}
-          />
-        </div>
-      </div>
-    );
+    return <RestaurantSkeleton />;
   }
-
   if (!restaurant) {
-    return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <h1 className="text-2xl font-bold text-white">Ресторан не знайдено</h1>
-      </div>
-    );
+    return <RestaurantNotFound />;
   }
 
   return (
@@ -65,16 +47,7 @@ export function RestaurantBookingPage({ domain }: RestaurantBookingPageProps) {
       <RestaurantReviews restaurant={restaurant} />
       <RestaurantBookingInfo />
       <RestaurantContacts restaurant={restaurant} />
-
-      {/* Footer */}
-      <footer className="py-8 border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 lg:px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <span>© 2026 {restaurant.name}</span>
-            <span>Система бронювання TableReserve</span>
-          </div>
-        </div>
-      </footer>
+      <TenantFooter restaurantName={restaurant.name} />
     </div>
   );
 }

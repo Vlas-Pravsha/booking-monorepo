@@ -2,7 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "target": "es2022",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],
     "moduleDetection": "force",

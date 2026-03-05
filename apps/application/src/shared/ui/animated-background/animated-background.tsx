@@ -57,3 +57,22 @@ export function FloatingElement({
     </div>
   );
 }
+
+export function DefaultFloatingElements() {
+  return (
+    <>
+      <FloatingElement className="top-20 left-[5%] w-16 h-16" delay={0}>
+        <div className="w-16 h-16 rounded-2xl bg-primary/20 backdrop-blur-sm border border-primary/10 rotate-12" />
+      </FloatingElement>
+      <FloatingElement className="top-40 right-[10%] w-12 h-12" delay={500}>
+        <div className="w-12 h-12 rounded-full bg-primary/15 backdrop-blur-sm border border-primary/10 -rotate-12" />
+      </FloatingElement>
+      <FloatingElement className="bottom-40 left-[15%] w-20 h-20" delay={1000}>
+        <div className="w-20 h-20 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/10 rotate-45" />
+      </FloatingElement>
+      <FloatingElement className="bottom-20 right-[5%] w-14 h-14" delay={1500}>
+        <div className="w-14 h-14 rounded-full bg-primary/15 backdrop-blur-sm border border-primary/10 rotate-12" />
+      </FloatingElement>
+    </>
+  );
+}

@@ -12,7 +12,6 @@ export function RestaurantAbout({ restaurant }: RestaurantAboutProps) {
     <section id="about" className="py-20 lg:py-32 px-4 lg:px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          {/* Large img */}
           <div className="lg:col-span-2 rounded-3xl overflow-hidden relative h-100 lg:h-150 group">
             <Image
               src={restaurant.gallery[1] || ""}
@@ -30,7 +29,6 @@ export function RestaurantAbout({ restaurant }: RestaurantAboutProps) {
             </div>
           </div>
 
-          {/* Info Stack */}
           <div className="flex flex-col gap-4 lg:gap-6">
             <div className="rounded-3xl bg-white/3 border border-white/5 p-6 flex-1">
               <span className="text-xs text-white/40 uppercase tracking-wider mb-4 block">

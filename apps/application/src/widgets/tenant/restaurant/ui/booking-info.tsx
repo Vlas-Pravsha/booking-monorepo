@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { BookingForm } from "@/features/booking/make-reservation";
+import { BookingForm } from "@/features/make-reservation";
 
 export function RestaurantBookingInfo() {
   return (

@@ -28,6 +28,32 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/settings", icon: Settings, title: "Налаштування" },
 ];
 
+interface SidebarNavItemProps extends NavItem {
+  isActive: boolean;
+}
+
+function SidebarNavItem({
+  href,
+  icon: Icon,
+  title,
+  isActive,
+}: SidebarNavItemProps) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-slate-900 text-white"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+      )}
+    >
+      <Icon className="h-5 w-5" />
+      {title}
+    </Link>
+  );
+}
+
 export interface AdminSidebarProps {
   className?: string;
 }
@@ -37,7 +63,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
   return (
     <aside
-      className={cn("flex flex-col w-64 h-screen border-r bg-white", className)}
+      className={cn("flex w-64 flex-col h-screen border-r bg-white", className)}
     >
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/admin" className="flex items-center gap-2">
@@ -49,26 +75,13 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-1 p-4">
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {item.title}
-            </Link>
-          );
-        })}
+        {NAV_ITEMS.map((item) => (
+          <SidebarNavItem
+            key={item.href}
+            {...item}
+            isActive={pathname === item.href}
+          />
+        ))}
       </nav>
 
       <div className="border-t p-4">
