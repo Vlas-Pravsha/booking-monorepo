@@ -28,4 +28,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter booking-system typecheck
+        run: pnpm check-types
