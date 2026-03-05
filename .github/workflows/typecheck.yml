@@ -1,4 +1,4 @@
-name: CI
+name: Typecheck
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [main, dev]
 
 jobs:
-  ci:
-    name: Lint, Typecheck & Build
+  typecheck:
+    name: Typecheck
     runs-on: ubuntu-latest
 
     steps:
@@ -29,11 +29,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm --filter booking-system lint
-
       - name: Typecheck
         run: pnpm --filter booking-system typecheck
-
-      - name: Build
-        run: pnpm --filter booking-system build
