@@ -28,9 +28,9 @@ export function RestaurantBookingInfo() {
                 { label: "онлайн", num: "24/7" },
                 { label: "передоплата", num: "0" },
                 { label: "підтвердження", num: "100%" },
-              ].map((item, i) => (
+              ].map((item) => (
                 <div
-                  key={i}
+                  key={item.label}
                   className="bg-white/3 border border-white/5 rounded-xl p-4"
                 >
                   <p className="text-2xl font-bold">{item.num}</p>

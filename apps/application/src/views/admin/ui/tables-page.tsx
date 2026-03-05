@@ -24,8 +24,26 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 
+function getTableShapeLabel(shape: string): string {
+  if (shape === "round") {
+    return "Круглий";
+  }
+  if (shape === "square") {
+    return "Квадратний";
+  }
+  return "Прямокутний";
+}
+
 export function TablesPage() {
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
+
+  const setGridView = React.useCallback(() => {
+    setViewMode("grid");
+  }, []);
+
+  const setListView = React.useCallback(() => {
+    setViewMode("list");
+  }, []);
 
   const stats = {
     available: TABLES.filter((t) => t.status === "available").length,
@@ -124,14 +142,14 @@ export function TablesPage() {
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode("grid")}
+                onClick={setGridView}
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode("list")}
+                onClick={setListView}
               >
                 <Users className="h-4 w-4" />
               </Button>
@@ -210,12 +228,7 @@ export function TablesPage() {
                     <div>
                       <p className="font-medium">{table.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {table.seats} місць •{" "}
-                        {table.shape === "round"
-                          ? "Круглий"
-                          : (table.shape === "square"
-                            ? "Квадратний"
-                            : "Прямокутний")}
+                        {table.seats} місць • {getTableShapeLabel(table.shape)}
                       </p>
                     </div>
                   </div>

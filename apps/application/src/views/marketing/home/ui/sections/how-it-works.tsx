@@ -62,7 +62,7 @@ export function LandingHowItWorks() {
       <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-4">
         {steps.map((step, i) => (
           <div
-            key={i}
+            key={step.number}
             className="relative flex flex-col items-center text-center"
           >
             <div className="relative mb-6">

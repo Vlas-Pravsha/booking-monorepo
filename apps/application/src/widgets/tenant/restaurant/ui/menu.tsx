@@ -1,3 +1,4 @@
+import Image from "next/image";
 import * as React from "react";
 
 import type { Restaurant } from "@/entities/restaurant";
@@ -20,15 +21,17 @@ export function RestaurantMenu({ restaurant }: RestaurantMenuProps) {
         </div>
 
         <div className="flex gap-4 lg:gap-6 overflow-x-auto pb-4 lg:grid lg:grid-cols-4 lg:overflow-visible">
-          {restaurant.menuHighlights.map((item, i) => (
+          {restaurant.menuHighlights.map((item) => (
             <div
-              key={i}
+              key={item.name}
               className="min-w-70 lg:min-w-0 bg-[#09090b] border border-white/5 rounded-2xl overflow-hidden group hover:border-white/10 transition-all"
             >
               <div className="aspect-4/3 relative overflow-hidden">
-                <img
-                  src={item.image ? item.image : ""}
+                <Image
+                  src={item.image || ""}
                   alt={item.name}
+                  width={400}
+                  height={300}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute top-3 right-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-sm font-medium">

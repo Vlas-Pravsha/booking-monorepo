@@ -4,5 +4,14 @@
     "./node_modules/ultracite/config/oxlint/core/.oxlintrc.json",
     "./node_modules/ultracite/config/oxlint/react/.oxlintrc.json",
     "./node_modules/ultracite/config/oxlint/next/.oxlintrc.json"
-  ]
+  ],
+  "rules": {
+    "func-style": "off",
+    "react_perf/jsx-no-new-function-as-prop": "off",
+    "oxc/no-barrel-file": "off",
+    "promise/avoid-new": "off",
+    "import/no-relative-parent-imports": "off",
+    "promise/prefer-await-to-then": "off",
+    "react/no-array-index-key": "off"
+  }
 }

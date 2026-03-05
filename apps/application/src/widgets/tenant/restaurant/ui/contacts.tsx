@@ -39,9 +39,9 @@ export function RestaurantContacts({ restaurant }: RestaurantContactsProps) {
               label: "Години",
               value: restaurant.workHours,
             },
-          ].map((item, i) => (
+          ].map((item) => (
             <a
-              key={i}
+              key={item.label}
               href={item.href}
               className="group bg-[#09090b] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all"
             >

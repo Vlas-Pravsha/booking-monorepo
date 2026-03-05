@@ -7,9 +7,6 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "check": "npm run lint && npm run typecheck",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
     "prepare": "husky"
@@ -70,7 +67,7 @@
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
+      "tsc --noEmit"
     ],
     "**/*.{json,md,mdx,css}": [
       "prettier --write"

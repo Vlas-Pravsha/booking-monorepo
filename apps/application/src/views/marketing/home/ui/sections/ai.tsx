@@ -48,9 +48,9 @@ export function LandingAI() {
             </p>
 
             <div className="mx-auto grid max-w-xl gap-4 sm:grid-cols-2">
-              {aiFeatures.map((item, i) => (
+              {aiFeatures.map((item) => (
                 <div
-                  key={i}
+                  key={item}
                   className="bg-background/50 flex items-center gap-3 rounded-xl border p-3"
                 >
                   <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
@@ -100,8 +100,9 @@ export function LandingAI() {
                     </div>
                     <div className="flex h-20 items-end gap-1">
                       {chartData.map((h, i) => (
+                        // eslint-disable-next-line react/no-array-index-key
                         <div
-                          key={i}
+                          key={`bar-${String(i)}`}
                           className={cn(
                             "flex-1 rounded-t-sm",
                             i >= 10 ? "bg-primary" : "bg-primary/30"

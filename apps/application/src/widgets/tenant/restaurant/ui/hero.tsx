@@ -29,8 +29,9 @@ export function RestaurantHero({ restaurant }: RestaurantHeroProps) {
                   </span>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
+                      // eslint-disable-next-line react/no-array-index-key
                       <Star
-                        key={i}
+                        key={`star-${String(i)}`}
                         className={`w-3 h-3 ${i < Math.floor(restaurant.rating) ? "fill-white text-white" : "text-white/30"}`}
                       />
                     ))}

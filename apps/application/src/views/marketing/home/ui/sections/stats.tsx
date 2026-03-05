@@ -31,8 +31,11 @@ export function LandingStats() {
 
       <Container>
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {stats.map((stat, i) => (
-            <div key={i} className="text-primary-foreground text-center">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="text-primary-foreground text-center"
+            >
               <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
                 <stat.icon className="h-7 w-7" />
               </div>

@@ -89,9 +89,9 @@ export function LandingPricing() {
       </FloatingElement>
 
       <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-3">
-        {plans.map((plan, i) => (
+        {plans.map((plan) => (
           <Card
-            key={i}
+            key={plan.name}
             className={cn(
               "relative flex h-full flex-col",
               plan.popular
@@ -120,8 +120,8 @@ export function LandingPricing() {
             </CardHeader>
             <CardContent className="flex-1">
               <ul className="space-y-3">
-                {plan.features.map((feature, j) => (
-                  <li key={j} className="flex items-start gap-3">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
                     <CheckCircle2 className="text-primary mt-0.5 h-5 w-5 shrink-0" />
                     <span>{feature}</span>
                   </li>

@@ -12,6 +12,10 @@ export function RestaurantNavigation({
 }: RestaurantNavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+  const handleToggleMenu = React.useCallback(() => {
+    setIsMenuOpen((prev) => !prev);
+  }, []);
+
   return (
     <>
       {/* Floating Sidebar Navigation */}
@@ -43,7 +47,7 @@ export function RestaurantNavigation({
       <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-semibold">{restaurantName}</span>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2">
+          <button type="button" onClick={handleToggleMenu} className="p-2">
             {isMenuOpen ? (
               <X className="w-5 h-5" />
             ) : (

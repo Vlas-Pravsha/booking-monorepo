@@ -79,6 +79,16 @@ function StatCard({
   );
 }
 
+function getFillColor(fill: number): string {
+  if (fill >= 80) {
+    return "bg-linear-to-br from-emerald-500 to-emerald-400";
+  }
+  if (fill >= 50) {
+    return "bg-linear-to-br from-amber-500 to-amber-400";
+  }
+  return "bg-linear-to-br from-muted-foreground to-muted-foreground/60";
+}
+
 export function AdminPage() {
   return (
     <DashboardShell>
@@ -225,11 +235,7 @@ export function AdminPage() {
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-1000 ease-out",
-                        slot.fill >= 80
-                          ? "bg-linear-to-br from-emerald-500 to-emerald-400"
-                          : (slot.fill >= 50
-                            ? "bg-linear-to-br from-amber-500 to-amber-400"
-                            : "bg-linear-to-br from-muted-foreground to-muted-foreground/60")
+                        getFillColor(slot.fill)
                       )}
                       style={{ width: `${slot.fill}%` }}
                     />

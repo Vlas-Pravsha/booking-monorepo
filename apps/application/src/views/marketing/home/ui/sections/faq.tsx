@@ -74,10 +74,10 @@ export function LandingFAQ() {
       </FloatingElement>
 
       <Accordion type="single" collapsible className="space-y-4">
-        {faqs.map((faq, i) => (
+        {faqs.map((faq) => (
           <AccordionItem
-            key={i}
-            value={`item-${i}`}
+            key={faq.q}
+            value={faq.q}
             className="bg-card/80 border-border/50 group relative overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-primary/5 hover:shadow-lg"
           >
             <AccordionTrigger className="group-hover:bg-muted/30 px-6 py-5 transition-colors hover:no-underline">

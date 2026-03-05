@@ -30,6 +30,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
+function getSeatsLabel(seats: number): string {
+  if (seats === 1) {
+    return "місце";
+  }
+  if (seats < 5) {
+    return "місця";
+  }
+  return "місць";
+}
+
 const STEPS = [
   { icon: Sparkles, id: 0, title: "Вітання" },
   { icon: Utensils, id: 1, title: "Про ресторан" },
@@ -57,10 +67,10 @@ const initialData: OnboardingData = {
   phone: "",
   restaurantName: "",
   tables: [
-    { seats: 2, name: "Стіл 1" },
-    { seats: 4, name: "Стіл 2" },
-    { seats: 4, name: "Стіл 3" },
-    { seats: 6, name: "Стіл 4" },
+    { name: "Стіл 1", seats: 2 },
+    { name: "Стіл 2", seats: 4 },
+    { name: "Стіл 3", seats: 4 },
+    { name: "Стіл 4", seats: 6 },
   ],
 };
 
@@ -85,9 +95,9 @@ function WelcomeStep() {
           { description: "Швидке налаштування", title: "5 хвилин" },
           { description: "14 днів пробного періоду", title: "Безкоштовно" },
           { description: "Безліч столиків та гостей", title: "Без обмежень" },
-        ].map((item, i) => (
+        ].map((item) => (
           <Card
-            key={i}
+            key={item.title}
             className="border-none bg-muted/30 hover:bg-primary/5 transition-colors"
           >
             <CardContent className="pt-6 text-center">
@@ -345,7 +355,7 @@ function ScheduleStep({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {data.tables.map((table, index) => (
                 <div
-                  key={index}
+                  key={table.name}
                   className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/60 border border-transparent hover:border-primary/20 transition-all"
                 >
                   <div className="flex flex-col">
@@ -355,12 +365,7 @@ function ScheduleStep({
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <Users className="w-3.5 h-3.5 text-primary/70" />
                       <span className="text-sm font-bold">
-                        {table.seats}{" "}
-                        {table.seats === 1
-                          ? "місце"
-                          : (table.seats < 5
-                            ? "місця"
-                            : "місць")}
+                        {table.seats} {getSeatsLabel(table.seats)}
                       </span>
                     </div>
                   </div>

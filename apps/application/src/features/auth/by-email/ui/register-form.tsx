@@ -18,10 +18,9 @@ const REGISTER_BENEFITS = [
 export function RegisterForm() {
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement actual registration logic
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
@@ -130,9 +129,9 @@ export function RegisterForm() {
       </div>
 
       <div className="mt-8 space-y-3">
-        {REGISTER_BENEFITS.map((benefit, i) => (
+        {REGISTER_BENEFITS.map((benefit) => (
           <div
-            key={i}
+            key={benefit}
             className="flex items-center gap-3 text-sm text-muted-foreground"
           >
             <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

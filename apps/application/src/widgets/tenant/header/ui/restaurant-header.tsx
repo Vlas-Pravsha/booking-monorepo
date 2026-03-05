@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Utensils } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { Button } from "@/shared/ui/button";
@@ -23,27 +24,27 @@ export function RestaurantHeader({ name }: RestaurantHeaderProps) {
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <a
-            href="#"
+          <Link
+            href="/"
             className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
           >
             Головна
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/"
             className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
           >
             Меню
-          </a>
-          <a href="#" className="text-sm font-semibold text-orange-600">
+          </Link>
+          <Link href="/" className="text-sm font-semibold text-orange-600">
             Бронювання
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/"
             className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
           >
             Контакти
-          </a>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">

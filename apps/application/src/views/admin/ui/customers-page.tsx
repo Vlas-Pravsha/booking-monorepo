@@ -29,13 +29,30 @@ import {
 import { Input } from "@/shared/ui/input";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 
+function TagFilterItem({
+  tag,
+  onSelect,
+}: {
+  tag: string;
+  onSelect: (tag: string) => void;
+}) {
+  const handleClick = React.useCallback(() => {
+    onSelect(tag);
+  }, [tag, onSelect]);
+  return <DropdownMenuItem onClick={handleClick}>{tag}</DropdownMenuItem>;
+}
+
 export function CustomersPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [tagFilter, setTagFilter] = React.useState<string>("all");
 
   const allTags = React.useMemo(() => {
     const tags = new Set<string>();
-    CUSTOMERS.forEach((c) => c.tags.forEach((t) => tags.add(t)));
+    for (const c of CUSTOMERS) {
+      for (const t of c.tags) {
+        tags.add(t);
+      }
+    }
     return [...tags];
   }, []);
 
@@ -54,6 +71,17 @@ export function CustomersPage() {
     total: CUSTOMERS.length,
     vip: CUSTOMERS.filter((c) => c.vip).length,
   };
+
+  const handleSetTagAll = React.useCallback(() => {
+    setTagFilter("all");
+  }, []);
+
+  const handleSearchChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    []
+  );
 
   return (
     <DashboardShell>
@@ -135,7 +163,7 @@ export function CustomersPage() {
               <Input
                 placeholder="Пошук за іменем, телефоном або email..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-10 bg-white/50"
               />
             </div>
@@ -148,16 +176,15 @@ export function CustomersPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTagFilter("all")}>
+                  <DropdownMenuItem onClick={handleSetTagAll}>
                     Всі теги
                   </DropdownMenuItem>
                   {allTags.map((tag) => (
-                    <DropdownMenuItem
+                    <TagFilterItem
                       key={tag}
-                      onClick={() => setTagFilter(tag)}
-                    >
-                      {tag}
-                    </DropdownMenuItem>
+                      tag={tag}
+                      onSelect={setTagFilter}
+                    />
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>

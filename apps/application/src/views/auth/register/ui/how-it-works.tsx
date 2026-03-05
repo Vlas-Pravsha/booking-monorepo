@@ -37,9 +37,9 @@ export function HowItWorks() {
       </div>
 
       <div className="grid gap-4">
-        {REGISTER_STEPS.map((step, i) => (
+        {REGISTER_STEPS.map((step) => (
           <div
-            key={i}
+            key={step.title}
             className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:shadow-lg hover:shadow-primary/5 transition-all"
           >
             <div className="flex items-start gap-4">
@@ -71,8 +71,8 @@ export function HowItWorks() {
         </p>
         <ul className="space-y-2">
           {["До 50 бронювань/міс", "Базова аналітика", "Підтримка"].map(
-            (item, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm">
+            (item) => (
+              <li key={item} className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 text-primary" />
                 {item}
               </li>

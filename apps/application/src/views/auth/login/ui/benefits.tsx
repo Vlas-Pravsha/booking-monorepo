@@ -36,7 +36,7 @@ export function Benefits() {
       <div className="grid gap-4">
         {LOGIN_BENEFITS.map((benefit, i) => (
           <div
-            key={i}
+            key={benefit.title}
             className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:shadow-lg hover:shadow-primary/5 transition-all"
           >
             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">

@@ -102,9 +102,9 @@ export function LandingFeatures() {
       </FloatingElement>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature, i) => (
+        {features.map((feature) => (
           <Card
-            key={i}
+            key={feature.title}
             className="group h-full border-none bg-muted/30 transition-all duration-500 hover:-translate-y-2 hover:bg-primary/5 hover:shadow-xl hover:shadow-primary/5"
           >
             <CardHeader>

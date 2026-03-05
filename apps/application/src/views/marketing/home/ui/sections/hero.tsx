@@ -82,8 +82,8 @@ export function LandingHero() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-7 delay-300 grid w-full max-w-lg grid-cols-3 gap-8 duration-1000">
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
                 <div className="text-primary text-2xl font-bold sm:text-3xl">
                   {stat.value}
                 </div>

@@ -9,23 +9,23 @@ import { Separator } from "@/shared/ui/separator";
 const FOOTER_LINKS = [
   {
     links: [
-      { name: "Можливості", href: "#features" },
-      { name: "Як це працює", href: "#how-it-works" },
-      { name: "Тарифи", href: "#pricing" },
+      { href: "#features", name: "Можливості" },
+      { href: "#how-it-works", name: "Як це працює" },
+      { href: "#pricing", name: "Тарифи" },
     ],
     title: "Продукт",
   },
   {
     links: [
-      { name: "Допомога", href: "/help" },
-      { name: "Контакти", href: "/contact" },
+      { href: "/help", name: "Допомога" },
+      { href: "/contact", name: "Контакти" },
     ],
     title: "Підтримка",
   },
   {
     links: [
-      { name: "Умови використання", href: "/terms" },
-      { name: "Конфіденційність", href: "/privacy" },
+      { href: "/terms", name: "Умови використання" },
+      { href: "/privacy", name: "Конфіденційність" },
     ],
     title: "Юридична інформація",
   },

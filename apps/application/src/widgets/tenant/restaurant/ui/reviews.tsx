@@ -21,21 +21,22 @@ export function RestaurantReviews({ restaurant }: RestaurantReviewsProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-          {restaurant.reviews.map((review, i) => (
+          {restaurant.reviews.map((review) => (
             <div
-              key={i}
+              key={review.author}
               className="bg-[#09090b] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all"
             >
               <div className="flex items-center gap-1 mb-4">
                 {Array.from({ length: 5 }).map((_, j) => (
+                  // eslint-disable-next-line react/no-array-index-key
                   <Star
-                    key={j}
+                    key={`star-${String(j)}`}
                     className={`w-3 h-3 ${j < review.rating ? "fill-white text-white" : "text-white/20"}`}
                   />
                 ))}
               </div>
               <p className="text-white/60 text-sm leading-relaxed mb-4">
-                "{review.text}"
+                &quot;{review.text}&quot;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-medium">

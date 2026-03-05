@@ -4,10 +4,14 @@ export const PROXY_CONFIG = {
 };
 
 export function getSubdomain(host: string | null) {
-  if (!host) {return null;}
+  if (!host) {
+    return null;
+  }
 
   const root = PROXY_CONFIG.rootDomain;
-  if (host === root) {return null;}
+  if (host === root) {
+    return null;
+  }
 
   return host.split(".")[0];
 }

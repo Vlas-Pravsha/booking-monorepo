@@ -216,7 +216,7 @@ export function BookingsPage() {
                           {booking.status === "confirmed" && (
                             <DropdownMenuItem>
                               <Check className="h-4 w-4 mr-2" />
-                              Позначити як "За столом"
+                              Позначити як &quot;За столом&quot;
                             </DropdownMenuItem>
                           )}
                           {booking.status === "seated" && (

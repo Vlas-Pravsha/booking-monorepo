@@ -1,3 +1,4 @@
+import Image from "next/image";
 import * as React from "react";
 
 import type { Restaurant } from "@/entities/restaurant";
@@ -20,12 +21,14 @@ export function RestaurantGallery({ restaurant }: RestaurantGalleryProps) {
         <div className="columns-1 md:columns-2 lg:columns-3 gap-4 lg:gap-6 space-y-4 lg:space-y-6">
           {restaurant.gallery.slice(0, 6).map((img, i) => (
             <div
-              key={i}
+              key={img}
               className="break-inside-avoid rounded-2xl overflow-hidden group relative"
             >
-              <img
+              <Image
                 src={img}
-                alt={`Gallery ${i + 1}`}
+                alt={`Галерея ресторану ${i + 1}`}
+                width={600}
+                height={400}
                 className="w-full transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />

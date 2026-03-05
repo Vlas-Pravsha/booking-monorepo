@@ -1,3 +1,4 @@
+import Image from "next/image";
 import * as React from "react";
 
 import type { Restaurant } from "@/entities/restaurant";
@@ -13,9 +14,11 @@ export function RestaurantAbout({ restaurant }: RestaurantAboutProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Large img */}
           <div className="lg:col-span-2 rounded-3xl overflow-hidden relative h-100 lg:h-150 group">
-            <img
-              src={restaurant.gallery[1] ? restaurant.gallery[1] : ""}
+            <Image
+              src={restaurant.gallery[1] || ""}
               alt="Interior"
+              width={800}
+              height={600}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-linear-to-t from-[#09090b]/60 via-transparent to-transparent" />
@@ -44,9 +47,9 @@ export function RestaurantAbout({ restaurant }: RestaurantAboutProps) {
                 Особливості
               </span>
               <div className="flex flex-wrap gap-2">
-                {restaurant.features.slice(0, 6).map((feature, i) => (
+                {restaurant.features.slice(0, 6).map((feature) => (
                   <span
-                    key={i}
+                    key={feature}
                     className="px-3 py-1.5 bg-white/5 rounded-full text-xs text-white/70"
                   >
                     {feature}

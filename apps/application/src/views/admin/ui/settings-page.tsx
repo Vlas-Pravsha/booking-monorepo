@@ -55,6 +55,16 @@ function SettingItem({
   );
 }
 
+const DAY_LABELS: Record<string, string> = {
+  friday: "П'ятниця",
+  monday: "Понеділок",
+  saturday: "Субота",
+  sunday: "Неділя",
+  thursday: "Четвер",
+  tuesday: "Вівторок",
+  wednesday: "Середа",
+};
+
 export function SettingsPage() {
   const [notifications, setNotifications] = React.useState({
     bookings: true,
@@ -64,14 +74,34 @@ export function SettingsPage() {
     telegram: true,
   });
 
+  const handleBookingsChange = React.useCallback((checked: boolean) => {
+    setNotifications((prev) => ({ ...prev, bookings: checked }));
+  }, []);
+
+  const handleRemindersChange = React.useCallback((checked: boolean) => {
+    setNotifications((prev) => ({ ...prev, reminders: checked }));
+  }, []);
+
+  const handleMarketingChange = React.useCallback((checked: boolean) => {
+    setNotifications((prev) => ({ ...prev, marketing: checked }));
+  }, []);
+
+  const handleSmsChange = React.useCallback((checked: boolean) => {
+    setNotifications((prev) => ({ ...prev, sms: checked }));
+  }, []);
+
+  const handleTelegramChange = React.useCallback((checked: boolean) => {
+    setNotifications((prev) => ({ ...prev, telegram: checked }));
+  }, []);
+
   const [schedule] = React.useState({
-    friday: { open: "10:00", close: "23:00", enabled: true },
-    monday: { open: "10:00", close: "22:00", enabled: true },
-    saturday: { open: "10:00", close: "23:00", enabled: true },
-    sunday: { open: "11:00", close: "21:00", enabled: true },
-    thursday: { open: "10:00", close: "22:00", enabled: true },
-    tuesday: { open: "10:00", close: "22:00", enabled: true },
-    wednesday: { open: "10:00", close: "22:00", enabled: true },
+    friday: { close: "23:00", enabled: true, open: "10:00" },
+    monday: { close: "22:00", enabled: true, open: "10:00" },
+    saturday: { close: "23:00", enabled: true, open: "10:00" },
+    sunday: { close: "21:00", enabled: true, open: "11:00" },
+    thursday: { close: "22:00", enabled: true, open: "10:00" },
+    tuesday: { close: "22:00", enabled: true, open: "10:00" },
+    wednesday: { close: "22:00", enabled: true, open: "10:00" },
   });
 
   return (
@@ -172,19 +202,7 @@ export function SettingsPage() {
                       !enabled && "text-muted-foreground"
                     )}
                   >
-                    {day === "monday"
-                      ? "Понеділок"
-                      : day === "tuesday"
-                        ? "Вівторок"
-                        : day === "wednesday"
-                          ? "Середа"
-                          : day === "thursday"
-                            ? "Четвер"
-                            : day === "friday"
-                              ? "П'ятниця"
-                              : day === "saturday"
-                                ? "Субота"
-                                : "Неділя"}
+                    {DAY_LABELS[day] ?? day}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -226,12 +244,7 @@ export function SettingsPage() {
               >
                 <Switch
                   checked={notifications.bookings}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      bookings: checked,
-                    }))
-                  }
+                  onCheckedChange={handleBookingsChange}
                 />
               </SettingItem>
               <SettingItem
@@ -241,12 +254,7 @@ export function SettingsPage() {
               >
                 <Switch
                   checked={notifications.reminders}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      reminders: checked,
-                    }))
-                  }
+                  onCheckedChange={handleRemindersChange}
                 />
               </SettingItem>
               <SettingItem
@@ -256,12 +264,7 @@ export function SettingsPage() {
               >
                 <Switch
                   checked={notifications.marketing}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      marketing: checked,
-                    }))
-                  }
+                  onCheckedChange={handleMarketingChange}
                 />
               </SettingItem>
               <SettingItem
@@ -271,9 +274,7 @@ export function SettingsPage() {
               >
                 <Switch
                   checked={notifications.sms}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({ ...prev, sms: checked }))
-                  }
+                  onCheckedChange={handleSmsChange}
                 />
               </SettingItem>
               <SettingItem
@@ -283,12 +284,7 @@ export function SettingsPage() {
               >
                 <Switch
                   checked={notifications.telegram}
-                  onCheckedChange={(checked) =>
-                    setNotifications((prev) => ({
-                      ...prev,
-                      telegram: checked,
-                    }))
-                  }
+                  onCheckedChange={handleTelegramChange}
                 />
               </SettingItem>
             </div>

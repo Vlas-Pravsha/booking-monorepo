@@ -87,8 +87,8 @@ export function LandingBenefits() {
         </div>
 
         <div className="mb-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((benefit, i) => (
-            <div key={i} className="group relative">
+          {benefits.map((benefit) => (
+            <div key={benefit.title} className="group relative">
               <div className="from-primary/20 to-primary/5 absolute inset-0 rounded-3xl bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="bg-card/80 shadow-primary/10 relative rounded-3xl border p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl sm:p-8">
                 <div className="text-primary mb-2 text-5xl font-black sm:text-6xl">
@@ -120,9 +120,9 @@ export function LandingBenefits() {
               </div>
             </div>
             <div className="space-y-4">
-              {features.slice(0, 2).map((feature, i) => (
+              {features.slice(0, 2).map((feature) => (
                 <div
-                  key={i}
+                  key={feature.title}
                   className="bg-muted/30 flex items-start gap-4 rounded-2xl p-4"
                 >
                   <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
