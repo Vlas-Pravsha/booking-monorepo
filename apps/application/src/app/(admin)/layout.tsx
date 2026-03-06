@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { AdminFooter } from "@/widgets/admin/footer";
-import { AdminSidebar } from "@/widgets/admin/sidebar";
+import { AdminFooter } from "@/widgets/admin-footer";
+import { AdminSidebar } from "@/widgets/admin-sidebar";
 
 export const metadata: Metadata = {
   title: "Адмін-панель | TableReserve",

@@ -1,4 +1,4 @@
-import { OnboardingFlow } from "@/views/marketing/onboarding/ui/flow/onboarding-flow";
+import { OnboardingFlow } from "@/views/marketing/onboarding";
 
 export default function Page() {
   return (

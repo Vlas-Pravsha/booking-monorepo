@@ -2,7 +2,6 @@
   "name": "hono",
   "type": "module",
   "dependencies": {
-    "@clerk/hono": "^0.0.3",
     "@prisma/client": "^7.4.2",
     "hono": "^4.12.5",
     "zod": "^4.3.6"

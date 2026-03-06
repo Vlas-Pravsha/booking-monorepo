@@ -1,12 +1,9 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getSubdomain, PROXY_CONFIG } from "./shared/config";
+import { getSubdomain, PROXY_CONFIG } from "./shared/lib/tenant";
 
-export default clerkMiddleware();
-
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { nextUrl: url, headers } = request;
   const host = headers.get("host");
   const subdomain = getSubdomain(host);
@@ -27,7 +24,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|public|.*\\..*).*)",
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],

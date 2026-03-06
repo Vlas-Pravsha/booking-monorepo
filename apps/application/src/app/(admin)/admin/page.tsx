@@ -1,5 +1,5 @@
-import { AdminPage } from "@/views/admin";
+import { AdminDashboardPage } from "@/views/admin/dashboard";
 
 export default function Page() {
-  return <AdminPage />;
+  return <AdminDashboardPage />;
 }

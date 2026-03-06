@@ -1,4 +1,5 @@
 export {
+  PROXY_CONFIG,
   getSubdomain,
   getTenantSlug,
   isAdminDomain,

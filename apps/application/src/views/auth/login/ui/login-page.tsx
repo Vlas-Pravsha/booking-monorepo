@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { LoginForm } from "@/features/auth-by-email";
+import { LoginForm } from "@/features/auth/email-auth";
 import {
   AnimatedBackground,
   DefaultFloatingElements,

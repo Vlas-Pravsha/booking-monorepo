@@ -1,5 +1,5 @@
-import { BookingsPage } from "@/views/admin";
+import { AdminBookingsPage } from "@/views/admin/bookings";
 
 export default function Page() {
-  return <BookingsPage />;
+  return <AdminBookingsPage />;
 }

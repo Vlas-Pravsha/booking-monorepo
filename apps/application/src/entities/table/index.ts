@@ -1,3 +1,7 @@
-export * from "./lib/utils";
-export * from "./model/mock";
-export * from "./model/types";
+export { TABLES } from "./model/mock";
+export type { Table } from "./model/types";
+export {
+  getTableShapeLabel,
+  getTableStatusBadgeClass,
+  getTableStatusLabel,
+} from "./ui/status";

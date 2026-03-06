@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { restaurantApi } from "@/entities/restaurant";
-import { TenantFooter } from "@/widgets/tenant/footer";
+import { TenantFooter } from "@/widgets/tenant-footer";
 import {
   RestaurantAbout,
   RestaurantBookingInfo,
@@ -14,7 +14,7 @@ import {
   RestaurantMenu,
   RestaurantNavigation,
   RestaurantReviews,
-} from "@/widgets/tenant/restaurant";
+} from "@/widgets/tenant-restaurant";
 
 import { RestaurantNotFound } from "./restaurant-not-found";
 import { RestaurantSkeleton } from "./restaurant-skeleton";
