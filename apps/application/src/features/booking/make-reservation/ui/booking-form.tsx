@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
-import { useMakeReservation } from "../api/hooks";
+import { useMakeReservation } from "../api/use-make-reservation";
 import type { BookingFormData } from "../model/schema";
 import { BookingSchema } from "../model/schema";
 

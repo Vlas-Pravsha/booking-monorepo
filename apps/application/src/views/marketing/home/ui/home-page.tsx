@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import * as React from "react";
 
-import { Footer } from "@/widgets/marketing/footer";
-import { Header } from "@/widgets/marketing/header";
+import { MarketingFooter } from "@/widgets/marketing-footer";
+import { MarketingHeader } from "@/widgets/marketing-header";
 
 import { LandingHero } from "./sections/hero";
 
@@ -40,7 +40,7 @@ const LandingContact = dynamic(() =>
 export function HomePage() {
   return (
     <div className="selection:bg-primary selection:text-primary-foreground flex min-h-screen flex-col">
-      <Header />
+      <MarketingHeader />
 
       <main className="flex-1">
         <LandingHero />
@@ -55,7 +55,7 @@ export function HomePage() {
         <LandingContact />
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   );
 }

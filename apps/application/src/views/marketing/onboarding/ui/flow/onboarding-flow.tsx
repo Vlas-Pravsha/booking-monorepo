@@ -6,15 +6,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  MapPin,
-  Minus,
-  PartyPopper,
-  Phone,
-  Plus,
   Sparkles,
-  Timer,
-  Trash2,
-  Users,
   Utensils,
 } from "lucide-react";
 import Link from "next/link";
@@ -26,499 +18,28 @@ import {
   FloatingElement,
 } from "@/shared/ui/animated-background";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
 
-function getSeatsLabel(seats: number): string {
-  if (seats === 1) {
-    return "місце";
-  }
-  if (seats < 5) {
-    return "місця";
-  }
-  return "місць";
-}
+import { CompletionStep } from "../steps/completion-step";
+import { RestaurantInfoStep } from "../steps/restaurant-info-step";
+import { ScheduleStep } from "../steps/schedule-step";
+import { WelcomeStep } from "../steps/welcome-step";
+import { ONBOARDING_INITIAL_DATA, ONBOARDING_STEPS } from "../types";
+import type { OnboardingData } from "../types";
 
-const STEPS = [
-  { icon: Sparkles, id: 0, title: "Вітання" },
-  { icon: Utensils, id: 1, title: "Про ресторан" },
-  { icon: Clock, id: 2, title: "Графік" },
-  { icon: CheckCircle2, id: 3, title: "Готово" },
-];
-
-interface OnboardingData {
-  restaurantName: string;
-  address: string;
-  phone: string;
-  email: string;
-  openingTime: string;
-  closingTime: string;
-  averageDuration: number;
-  tables: { seats: number; name: string }[];
-}
-
-const initialData: OnboardingData = {
-  address: "",
-  averageDuration: 90,
-  closingTime: "22:00",
-  email: "",
-  openingTime: "10:00",
-  phone: "",
-  restaurantName: "",
-  tables: [
-    { name: "Стіл 1", seats: 2 },
-    { name: "Стіл 2", seats: 4 },
-    { name: "Стіл 3", seats: 4 },
-    { name: "Стіл 4", seats: 6 },
-  ],
-};
-
-function WelcomeStep() {
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-6">
-          <PartyPopper className="w-12 h-12 text-primary" />
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-          Ласкаво просимо!
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-xl mx-auto">
-          Дякуємо, що обрали TableReserve. Разом ми створимо найкращу систему
-          бронювання для вашого ресторану.
-        </p>
-      </div>
-
-      <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-        {[
-          { description: "Швидке налаштування", title: "5 хвилин" },
-          { description: "14 днів пробного періоду", title: "Безкоштовно" },
-          { description: "Безліч столиків та гостей", title: "Без обмежень" },
-        ].map((item) => (
-          <Card
-            key={item.title}
-            className="border-none bg-muted/30 hover:bg-primary/5 transition-colors"
-          >
-            <CardContent className="pt-6 text-center">
-              <h3 className="font-semibold mb-1">{item.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {item.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RestaurantInfoStep({
-  data,
-  updateData,
-}: {
-  data: OnboardingData;
-  updateData: (data: Partial<OnboardingData>) => void;
-}) {
-  return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-          <Utensils className="w-8 h-8 text-primary" />
-        </div>
-        <h2 className="text-3xl font-bold mb-2">Про ресторан</h2>
-        <p className="text-muted-foreground">
-          Розкажіть нам основну інформацію про заклад
-        </p>
-      </div>
-
-      <div className="max-w-md mx-auto space-y-4">
-        <Card className="border-none bg-muted/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Utensils className="w-5 h-5 text-primary" />
-              Основна інформація
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="restaurantName">Назва ресторану</Label>
-              <Input
-                id="restaurantName"
-                placeholder='Ресторан "Улюблен"'
-                value={data.restaurantName}
-                onChange={(e) => updateData({ restaurantName: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Адреса</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="address"
-                  className="pl-10"
-                  placeholder="вул. Хрещатик, 1, Київ"
-                  value={data.address}
-                  onChange={(e) => updateData({ address: e.target.value })}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none bg-muted/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Phone className="w-5 h-5 text-primary" />
-              Контакти
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input
-                  id="phone"
-                  placeholder="+38 (099) 123-45-67"
-                  value={data.phone}
-                  onChange={(e) => updateData({ phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="info@restaurant.ua"
-                  value={data.email}
-                  onChange={(e) => updateData({ email: e.target.value })}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function ScheduleStep({
-  data,
-  updateData,
-}: {
-  data: OnboardingData;
-  updateData: (data: Partial<OnboardingData>) => void;
-}) {
-  const durations = [60, 90, 120, 150, 180];
-
-  const addTable = () => {
-    updateData({
-      tables: [
-        ...data.tables,
-        { name: `Стіл ${data.tables.length + 1}`, seats: 2 },
-      ],
-    });
-  };
-
-  const removeTable = (index: number) => {
-    updateData({
-      tables: data.tables.filter((_, i) => i !== index),
-    });
-  };
-
-  const updateTable = (index: number, seats: number) => {
-    const newTables = [...data.tables];
-    const existingTable = newTables[index];
-    if (existingTable) {
-      newTables[index] = { ...existingTable, seats };
-      updateData({ tables: newTables });
-    }
-  };
-
-  return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-          <Clock className="w-8 h-8 text-primary" />
-        </div>
-        <h2 className="text-3xl font-bold mb-2">Налаштування залу</h2>
-        <p className="text-muted-foreground">
-          Визначте час роботи та конфігурацію столів
-        </p>
-      </div>
-
-      <div className="max-w-xl mx-auto space-y-6">
-        <div className="grid sm:grid-cols-2 gap-6">
-          <Card className="border-none bg-muted/30 flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Години роботи
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="openingTime"
-                    className="text-xs uppercase tracking-wider text-muted-foreground font-semibold"
-                  >
-                    Відкриття
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="openingTime"
-                      type="time"
-                      className="bg-background/50 h-11"
-                      value={data.openingTime}
-                      onChange={(e) =>
-                        updateData({ openingTime: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="closingTime"
-                    className="text-xs uppercase tracking-wider text-muted-foreground font-semibold"
-                  >
-                    Закриття
-                  </Label>
-                  <Input
-                    id="closingTime"
-                    type="time"
-                    className="bg-background/50 h-11"
-                    value={data.closingTime}
-                    onChange={(e) =>
-                      updateData({ closingTime: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-muted/30 flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Timer className="w-5 h-5 text-primary" />
-                Тривалість візиту
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center">
-              <div className="grid grid-cols-3 gap-2">
-                {durations.map((duration) => (
-                  <Button
-                    key={duration}
-                    variant={
-                      data.averageDuration === duration ? "default" : "outline"
-                    }
-                    size="sm"
-                    onClick={() => updateData({ averageDuration: duration })}
-                    className={cn(
-                      "h-10 transition-all px-2",
-                      data.averageDuration === duration
-                        ? "shadow-md shadow-primary/20"
-                        : "bg-background/50"
-                    )}
-                  >
-                    {duration}
-                    <span className="ml-1 text-[10px] opacity-70">хв</span>
-                  </Button>
-                ))}
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-3 leading-tight italic">
-                * Середній час бронювання одного столу
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-none bg-muted/30">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              Столи та місця
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background/50 h-8"
-              onClick={addTable}
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Додати стіл
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {data.tables.map((table, index) => (
-                <div
-                  key={table.name}
-                  className="flex items-center justify-between gap-3 p-3 rounded-xl bg-background/60 border border-transparent hover:border-primary/20 transition-all"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-tight">
-                      {table.name}
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="w-3.5 h-3.5 text-primary/70" />
-                      <span className="text-sm font-bold">
-                        {table.seats} {getSeatsLabel(table.seats)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-md hover:bg-background"
-                        onClick={() =>
-                          updateTable(index, Math.max(1, table.seats - 1))
-                        }
-                        disabled={table.seats <= 1}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-md hover:bg-background"
-                        onClick={() =>
-                          updateTable(index, Math.min(20, table.seats + 1))
-                        }
-                        disabled={table.seats >= 20}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      onClick={() => removeTable(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {data.tables.length === 0 && (
-              <div className="text-center py-8 border-2 border-dashed rounded-xl border-muted-foreground/20">
-                <Users className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Ви ще не додали жодного столу
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function CompletionStep({ restaurantName }: { restaurantName: string }) {
-  const subdomain =
-    restaurantName
-      .toLowerCase()
-      .replaceAll(/[^a-z0-9\u0430-\u044F]/gu, "-")
-      .replaceAll(/-+/g, "-")
-      .replaceAll(/^-|-$/g, "") || "restaurant";
-  const domain = `${subdomain}.table-reserve.com`;
-
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-6">
-          <CheckCircle2 className="w-14 h-14 text-primary" />
-        </div>
-        <h1 className="text-4xl font-bold mb-4">Все готово!</h1>
-        <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Ваш ресторан успішно налаштований. Тепер ви можете почати приймати
-          бронювання.
-        </p>
-      </div>
-
-      <div className="max-w-md mx-auto space-y-4">
-        <Card className="border-none bg-primary/10 border border-primary/20">
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground text-center mb-2">
-              Ваша сторінка бронювання
-            </p>
-            <div className="flex items-center justify-center gap-2">
-              <Link
-                href={`https://${domain}`}
-                className="text-lg font-bold text-primary hover:underline"
-              >
-                {domain}
-              </Link>
-            </div>
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              Поділіться цим посиланням з вашими гостями
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none bg-muted/30">
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Check className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">AI-оптимізація</p>
-                <p className="text-sm text-muted-foreground">
-                  Система сама знайде найкращі слоти для бронювань
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Check className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">Telegram-бот</p>
-                <p className="text-sm text-muted-foreground">
-                  Сповіщення про нові бронювання
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex flex-col gap-2">
-          <Button size="lg" className="w-full h-12" asChild>
-            <Link href="/admin">
-              Перейти до панелі керування
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <Button variant="outline" className="w-full h-12" asChild>
-            <Link href={`https://${domain}`} target="_blank">
-              Переглянути публічну сторінку
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
+const STEP_ICONS = [Sparkles, Utensils, Clock, CheckCircle2];
 
 export function OnboardingFlow() {
   const [currentStep, setCurrentStep] = React.useState(0);
-  const [data, setData] = React.useState<OnboardingData>(initialData);
+  const [data, setData] = React.useState<OnboardingData>(
+    ONBOARDING_INITIAL_DATA
+  );
 
-  const updateData = (newData: Partial<OnboardingData>) => {
-    setData((prev) => ({ ...prev, ...newData }));
+  const updateData = (newData: Partial<OnboardingData>): void => {
+    setData((prev: OnboardingData) => ({ ...prev, ...newData }));
   };
 
   const handleNext = () => {
-    if (currentStep < STEPS.length - 1) {
+    if (currentStep < ONBOARDING_STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     }
   };
@@ -563,7 +84,7 @@ export function OnboardingFlow() {
     }
   };
 
-  const isLastStep = currentStep === STEPS.length - 1;
+  const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -602,49 +123,51 @@ export function OnboardingFlow() {
           {!isLastStep && (
             <div className="mb-12">
               <div className="flex items-center justify-between mb-4">
-                {STEPS.map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = index === currentStep;
-                  const isCompleted = index < currentStep;
+                {ONBOARDING_STEPS.map(
+                  (step: (typeof ONBOARDING_STEPS)[number], index: number) => {
+                    const Icon = STEP_ICONS[index];
+                    const isActive = index === currentStep;
+                    const isCompleted = index < currentStep;
 
-                  return (
-                    <div key={step.id} className="flex flex-col items-center">
-                      <div
-                        className={cn(
-                          "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
-                          isCompleted &&
-                            "border-primary bg-primary text-primary-foreground",
-                          isActive &&
-                            "border-primary bg-primary/10 text-primary",
-                          !isActive &&
-                            !isCompleted &&
-                            "border-muted bg-muted text-muted-foreground"
-                        )}
-                      >
-                        {isCompleted ? (
-                          <Check className="h-5 w-5" />
-                        ) : (
-                          <Icon className="h-5 w-5" />
-                        )}
+                    return (
+                      <div key={step.id} className="flex flex-col items-center">
+                        <div
+                          className={cn(
+                            "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
+                            isCompleted &&
+                              "border-primary bg-primary text-primary-foreground",
+                            isActive &&
+                              "border-primary bg-primary/10 text-primary",
+                            !isActive &&
+                              !isCompleted &&
+                              "border-muted bg-muted text-muted-foreground"
+                          )}
+                        >
+                          {isCompleted ? (
+                            <Check className="h-5 w-5" />
+                          ) : (
+                            Icon && <Icon className="h-5 w-5" />
+                          )}
+                        </div>
+                        <span
+                          className={cn(
+                            "mt-2 text-xs font-medium hidden sm:block",
+                            isActive ? "text-primary" : "text-muted-foreground"
+                          )}
+                        >
+                          {step.title}
+                        </span>
                       </div>
-                      <span
-                        className={cn(
-                          "mt-2 text-xs font-medium hidden sm:block",
-                          isActive ? "text-primary" : "text-muted-foreground"
-                        )}
-                      >
-                        {step.title}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
 
               <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
                   className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500"
                   style={{
-                    width: `${(currentStep / (STEPS.length - 1)) * 100}%`,
+                    width: `${(currentStep / (ONBOARDING_STEPS.length - 1)) * 100}%`,
                   }}
                 />
               </div>
@@ -657,14 +180,21 @@ export function OnboardingFlow() {
             <div className="mt-12 flex justify-between">
               <Button
                 variant="outline"
+                type="button"
                 onClick={handleBack}
                 disabled={currentStep === 0}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Назад
               </Button>
-              <Button onClick={handleNext} disabled={!canProceed()}>
-                {currentStep === STEPS.length - 2 ? "Завершити" : "Далі"}
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={!canProceed()}
+              >
+                {currentStep === ONBOARDING_STEPS.length - 2
+                  ? "Завершити"
+                  : "Далі"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

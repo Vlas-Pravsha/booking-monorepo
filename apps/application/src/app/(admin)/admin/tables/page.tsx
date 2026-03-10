@@ -1,5 +1,5 @@
-import { TablesPage } from "@/views/admin";
+import { AdminTablesPage } from "@/views/admin/tables";
 
 export default function Page() {
-  return <TablesPage />;
+  return <AdminTablesPage />;
 }

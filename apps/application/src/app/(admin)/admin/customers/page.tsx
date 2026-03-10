@@ -1,5 +1,5 @@
-import { CustomersPage } from "@/views/admin";
+import { AdminCustomersPage } from "@/views/admin/customers";
 
 export default function Page() {
-  return <CustomersPage />;
+  return <AdminCustomersPage />;
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { ContactForm } from "@/features/support/send-contact-request";
+import { ContactForm } from "@/features/contact/send-contact-request";
 import { Badge } from "@/shared/ui/badge";
 import { Container } from "@/shared/ui/container";
 

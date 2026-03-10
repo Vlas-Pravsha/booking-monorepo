@@ -1,17 +1,11 @@
-export const PROXY_CONFIG = {
-  adminSubdomain: process.env.NEXT_PUBLIC_ADMIN_SUBDOMAIN || "admin",
-  rootDomain: process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000",
-};
+import {
+  getSubdomain as getTenantSubdomain,
+  PROXY_CONFIG,
+} from "../lib/tenant";
 
-export function getSubdomain(host: string | null) {
-  if (!host) {
-    return null;
-  }
+export { PROXY_CONFIG };
 
-  const root = PROXY_CONFIG.rootDomain;
-  if (host === root) {
-    return null;
-  }
-
-  return host.split(".")[0];
-}
+/**
+ * @deprecated Use getSubdomain from "@/shared/lib/tenant" instead.
+ */
+export const getSubdomain = getTenantSubdomain;

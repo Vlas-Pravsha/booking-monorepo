@@ -1,5 +1,5 @@
-export { AdminPage } from "./ui/admin-page";
-export { BookingsPage } from "./ui/bookings-page";
-export { CustomersPage } from "./ui/customers-page";
-export { SettingsPage } from "./ui/settings-page";
-export { TablesPage } from "./ui/tables-page";
+export { AdminDashboardPage } from "./dashboard";
+export { AdminBookingsPage } from "./bookings";
+export { AdminCustomersPage } from "./customers";
+export { AdminSettingsPage } from "./settings";
+export { AdminTablesPage } from "./tables";
