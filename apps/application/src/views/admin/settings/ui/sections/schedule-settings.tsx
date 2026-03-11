@@ -3,15 +3,16 @@
 import { Clock } from "lucide-react";
 import * as React from "react";
 
+import { surfaceClassNames } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 import { Switch } from "@/shared/ui/switch";
 
 const DAY_LABELS: Record<string, string> = {
@@ -36,7 +37,7 @@ export function ScheduleSettings() {
   });
 
   return (
-    <Card className="border-none bg-white/80 shadow-sm backdrop-blur-sm">
+    <SurfaceCard>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
@@ -65,19 +66,19 @@ export function ScheduleSettings() {
                 type="time"
                 defaultValue={open}
                 disabled={!enabled}
-                className="w-28 bg-white/50"
+                className={cn(surfaceClassNames.mutedInput, "w-28")}
               />
               <span className="text-muted-foreground">-</span>
               <Input
                 type="time"
                 defaultValue={close}
                 disabled={!enabled}
-                className="w-28 bg-white/50"
+                className={cn(surfaceClassNames.mutedInput, "w-28")}
               />
             </div>
           </div>
         ))}
       </CardContent>
-    </Card>
+    </SurfaceCard>
   );
 }

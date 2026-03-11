@@ -1,6 +1,7 @@
 import { MoreHorizontal } from "lucide-react";
 
 import type { Customer } from "@/entities/customer";
+import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +22,7 @@ export function CustomerActionsMenu({ customer }: CustomerActionsMenuProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
         >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
@@ -32,7 +33,11 @@ export function CustomerActionsMenu({ customer }: CustomerActionsMenuProps) {
         <DropdownMenuItem>Історія бронювань</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className={customer.vip ? "text-amber-600" : "text-primary"}
+          className={
+            customer.vip
+              ? semanticToneStyles.warning.text
+              : semanticToneStyles.primary.text
+          }
         >
           {customer.vip ? "Зняти VIP статус" : "Зробити VIP"}
         </DropdownMenuItem>

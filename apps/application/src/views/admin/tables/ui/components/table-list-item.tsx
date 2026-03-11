@@ -6,6 +6,7 @@ import {
   getTableStatusBadgeClass,
   getTableStatusLabel,
 } from "@/entities/table";
+import { surfaceClassNames } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 
@@ -17,9 +18,14 @@ interface TableListItemProps {
 
 export function TableListItem({ table }: TableListItemProps) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-white/50 hover:bg-white/80 transition-colors">
+    <div
+      className={cn(
+        surfaceClassNames.frostedRow,
+        "flex items-center justify-between gap-4"
+      )}
+    >
       <div className="flex items-center gap-4">
-        <div className="bg-primary/10 text-primary p-2 rounded-lg">
+        <div className="rounded-[18px] border border-primary/15 bg-primary/10 p-3 text-primary">
           <Armchair className="h-5 w-5" />
         </div>
 
@@ -34,7 +40,10 @@ export function TableListItem({ table }: TableListItemProps) {
       <div className="flex items-center gap-4">
         <Badge
           variant="secondary"
-          className={cn("font-medium", getTableStatusBadgeClass(table.status))}
+          className={cn(
+            "rounded-full px-3 py-1 font-medium",
+            getTableStatusBadgeClass(table.status)
+          )}
         >
           {getTableStatusLabel(table.status)}
         </Badge>

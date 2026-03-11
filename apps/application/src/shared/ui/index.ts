@@ -23,3 +23,5 @@ export * from "./switch";
 export * from "./table";
 export * from "./tabs";
 export * from "./tooltip";
+export * from "./surface-card";
+export * from "./stats";

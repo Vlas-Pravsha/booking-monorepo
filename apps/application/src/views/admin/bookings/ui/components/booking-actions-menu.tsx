@@ -1,6 +1,7 @@
 import { Check, MoreHorizontal, X } from "lucide-react";
 
 import type { Booking } from "@/entities/booking";
+import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -26,25 +27,25 @@ export function BookingActionsMenu({ status }: BookingActionsMenuProps) {
         <DropdownMenuItem>Редагувати</DropdownMenuItem>
         {status === "pending" && (
           <>
-            <DropdownMenuItem className="text-emerald-600">
-              <Check className="h-4 w-4 mr-2" />
+            <DropdownMenuItem className={semanticToneStyles.success.text}>
+              <Check className="mr-2 h-4 w-4" />
               Підтвердити
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              <X className="h-4 w-4 mr-2" />
+            <DropdownMenuItem className={semanticToneStyles.danger.text}>
+              <X className="mr-2 h-4 w-4" />
               Скасувати
             </DropdownMenuItem>
           </>
         )}
         {status === "confirmed" && (
           <DropdownMenuItem>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="mr-2 h-4 w-4" />
             Позначити як &quot;За столом&quot;
           </DropdownMenuItem>
         )}
         {status === "seated" && (
           <DropdownMenuItem>
-            <Check className="h-4 w-4 mr-2" />
+            <Check className="mr-2 h-4 w-4" />
             Завершити
           </DropdownMenuItem>
         )}

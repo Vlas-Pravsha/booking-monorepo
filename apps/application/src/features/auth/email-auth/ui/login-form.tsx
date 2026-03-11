@@ -1,23 +1,75 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import { useAppDispatch } from "@/app/store/hooks";
+import { setSession } from "@/features/auth/session";
+import { isApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
-export function LoginForm() {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showPassword, setShowPassword] = React.useState(false);
+import { useLogin } from "../api";
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+const loginSchema = z.object({
+  email: z.email("Вкажіть коректний email"),
+  password: z
+    .string()
+    .min(8, "Пароль має містити щонайменше 8 символів")
+    .max(128, "Пароль надто довгий"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export function LoginForm() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showPassword, setShowPassword] = React.useState(false);
+  const { isPending, mutate } = useLogin();
+  const form = useForm<LoginFormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    resolver: zodResolver(loginSchema),
+  });
+
+  const submitError = form.formState.errors.root?.message;
+
+  const handleSubmit = (values: LoginFormValues) => {
+    form.clearErrors("root");
+
+    mutate(values, {
+      onError: (error) => {
+        if (isApiError(error)) {
+          form.setError("root", {
+            message: error.message,
+          });
+          return;
+        }
+
+        form.setError("root", {
+          message: "Не вдалося увійти. Спробуйте ще раз.",
+        });
+      },
+      onSuccess: (session) => {
+        dispatch(setSession(session));
+        toast.success("Вхід виконано");
+
+        const nextPath = searchParams.get("next");
+        router.replace(
+          nextPath && nextPath.startsWith("/") ? nextPath : "/admin"
+        );
+      },
+    });
   };
 
   return (
@@ -38,15 +90,19 @@ export function LoginForm() {
       </div>
 
       <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-2xl shadow-primary/10">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="info@restaurant.com"
-              required
+              autoComplete="email"
+              {...form.register("email")}
             />
+            <p className="min-h-5 text-xs text-danger">
+              {form.formState.errors.email?.message}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -64,12 +120,16 @@ export function LoginForm() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Введіть пароль"
-                required
+                autoComplete="current-password"
                 className="pr-10"
+                {...form.register("password")}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  showPassword ? "Приховати пароль" : "Показати пароль"
+                }
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? (
@@ -79,14 +139,23 @@ export function LoginForm() {
                 )}
               </button>
             </div>
+            <p className="min-h-5 text-xs text-danger">
+              {form.formState.errors.password?.message}
+            </p>
           </div>
+
+          {submitError ? (
+            <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
+              {submitError}
+            </div>
+          ) : null}
 
           <Button
             type="submit"
             className="w-full h-12 text-base font-semibold"
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? (
+            {isPending ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 Входимо...
@@ -114,10 +183,8 @@ export function LoginForm() {
       </div>
 
       <p className="mt-8 text-xs text-center text-muted-foreground">
-        Проблеми з входом?{" "}
-        <Link href="/contact" className="text-primary hover:underline">
-          Зв&apos;яжіться з підтримкою
-        </Link>
+        Захищений доступ через персональну сесію та автоматичне оновлення
+        токенів.
       </p>
     </div>
   );

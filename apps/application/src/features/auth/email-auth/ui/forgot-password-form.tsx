@@ -8,20 +8,22 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
+import { useForgotPassword } from "../api";
+
 export function ForgotPasswordForm() {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const { isPending, isSuccess, mutate } = useForgotPassword();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSubmitted(true);
-    }, 2000);
+
+    const formData = new FormData(e.currentTarget);
+
+    mutate({
+      email: formData.get("email")?.toString() ?? "",
+    });
   };
 
-  if (isSubmitted) {
+  if (isSuccess) {
     return (
       <div className="w-full max-w-md">
         <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-2xl shadow-primary/10 text-center">
@@ -62,6 +64,7 @@ export function ForgotPasswordForm() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="info@restaurant.com"
               required
@@ -71,9 +74,9 @@ export function ForgotPasswordForm() {
           <Button
             type="submit"
             className="w-full h-12 text-base font-semibold"
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? (
+            {isPending ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 Відправляємо...

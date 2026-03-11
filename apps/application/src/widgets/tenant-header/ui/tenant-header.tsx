@@ -2,56 +2,68 @@
 
 import { Menu, Utensils } from "lucide-react";
 import Link from "next/link";
-import * as React from "react";
 
+import { surfaceClassNames } from "@/shared/config";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 interface TenantHeaderProps {
   name: string;
 }
 
+interface NavigationItem {
+  href: string;
+  isActive: boolean;
+  label: string;
+}
+
+const navigationItems: NavigationItem[] = [
+  { href: "/", isActive: false, label: "Головна" },
+  { href: "/", isActive: false, label: "Меню" },
+  { href: "/", isActive: true, label: "Бронювання" },
+  { href: "/", isActive: false, label: "Контакти" },
+];
+
 export function TenantHeader({ name }: TenantHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-100">
-            <Utensils className="w-6 h-6 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+            <Utensils className="h-6 w-6" />
           </div>
-          <span className="text-xl font-black text-slate-900 tracking-tight">
+          <span className="text-xl font-black tracking-tight text-foreground">
             {name}
           </span>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
-          >
-            Головна
-          </Link>
-          <Link
-            href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
-          >
-            Меню
-          </Link>
-          <Link href="/" className="text-sm font-semibold text-orange-600">
-            Бронювання
-          </Link>
-          <Link
-            href="/"
-            className="text-sm font-semibold text-slate-600 hover:text-orange-600 transition-colors"
-          >
-            Контакти
-          </Link>
+        <nav className="hidden items-center gap-8 md:flex">
+          {navigationItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={cn(
+                "text-sm font-semibold transition-colors",
+                item.isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary"
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="w-5 h-5" />
+            <Menu className="h-5 w-5" />
           </Button>
-          <Button className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6 h-10 font-bold">
+          <Button
+            className={cn(
+              surfaceClassNames.actionButton,
+              "hidden h-10 rounded-xl px-6 font-bold sm:flex"
+            )}
+          >
             Подзвонити
           </Button>
         </div>

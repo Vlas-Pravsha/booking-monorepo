@@ -1,9 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import * as React from "react";
-
-import { restaurantApi } from "@/entities/restaurant";
+import { useRestaurantByDomain } from "@/entities/restaurant";
 import { TenantFooter } from "@/widgets/tenant-footer";
 import {
   RestaurantAbout,
@@ -24,15 +21,12 @@ interface RestaurantBookingPageProps {
 }
 
 export function RestaurantBookingPage({ domain }: RestaurantBookingPageProps) {
-  const { data: restaurant, isLoading } = useQuery({
-    enabled: !!domain,
-    queryFn: () => restaurantApi.getByDomain(domain),
-    queryKey: ["restaurant", domain],
-  });
+  const { data: restaurant, isLoading } = useRestaurantByDomain(domain);
 
   if (isLoading) {
     return <RestaurantSkeleton />;
   }
+
   if (!restaurant) {
     return <RestaurantNotFound />;
   }

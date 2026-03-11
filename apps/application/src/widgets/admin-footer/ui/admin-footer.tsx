@@ -1,13 +1,19 @@
-import * as React from "react";
-
 export function AdminFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-muted/20 px-6 py-3">
-      <p className="text-xs text-muted-foreground text-center">
-        © {year} TableReserve Admin · v0.1.0
-      </p>
+    <footer className="mt-auto rounded-xl border bg-card px-5 py-4 shadow-sm">
+      <div className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            TableReserve Admin
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Панель для бронювань, керування столами та базою гостей.
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground">© {year} · v0.1.0</p>
+      </div>
     </footer>
   );
 }

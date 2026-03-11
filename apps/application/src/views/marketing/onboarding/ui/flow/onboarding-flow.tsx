@@ -110,12 +110,6 @@ export function OnboardingFlow() {
             <span className="text-primary">.com</span>
           </span>
         </Link>
-
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">Увійти</Link>
-          </Button>
-        </div>
       </header>
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

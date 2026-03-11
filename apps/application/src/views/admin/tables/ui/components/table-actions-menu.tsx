@@ -1,5 +1,6 @@
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 
+import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -18,11 +19,11 @@ export function TableActionsMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem>
-          <Edit className="h-4 w-4 mr-2" />
+          <Edit className="mr-2 h-4 w-4" />
           Редагувати
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600">
-          <Trash2 className="h-4 w-4 mr-2" />
+        <DropdownMenuItem className={semanticToneStyles.danger.text}>
+          <Trash2 className="mr-2 h-4 w-4" />
           Видалити
         </DropdownMenuItem>
       </DropdownMenuContent>

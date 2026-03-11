@@ -8,6 +8,9 @@
   --font-sans:
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display:
+    var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 @theme inline {
@@ -33,9 +36,13 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-danger: var(--danger);
   --color-border: var(--border);
+  --color-info: var(--info);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -49,6 +56,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info-foreground: var(--info-foreground);
+  --color-danger-foreground: var(--danger-foreground);
 }
 
 :root {
@@ -68,9 +79,17 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --danger: oklch(0.577 0.245 27.325);
+  --danger-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
+  --info: oklch(0.61 0.164 251.29);
+  --info-foreground: oklch(0.985 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --success: oklch(0.696 0.17 162.48);
+  --success-foreground: oklch(0.205 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -102,9 +121,17 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --danger: oklch(0.704 0.191 22.216);
+  --danger-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
+  --info: oklch(0.72 0.14 247.2);
+  --info-foreground: oklch(0.205 0 0);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --success: oklch(0.78 0.15 162.48);
+  --success-foreground: oklch(0.205 0 0);
+  --warning: oklch(0.82 0.16 82.12);
+  --warning-foreground: oklch(0.205 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -124,10 +151,45 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     scroll-behavior: smooth;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.admin-experience {
+  position: relative;
+  background-color: var(--background);
+}
+
+.admin-experience .admin-display {
+  font-family:
+    var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+.admin-experience .admin-shell {
+  position: relative;
+}
+
+.admin-experience .admin-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.admin-experience .admin-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-experience .admin-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-experience .admin-nav-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 4px;
 }

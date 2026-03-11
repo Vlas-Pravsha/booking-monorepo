@@ -1,8 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 
+import { authReducer } from "@/features/auth/session";
+
 export const store = configureStore({
   reducer: {
-    _base: (state: Record<string, unknown> = {}) => state,
+    auth: authReducer,
   },
 });
 

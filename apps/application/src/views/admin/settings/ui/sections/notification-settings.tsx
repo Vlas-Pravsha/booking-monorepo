@@ -4,12 +4,12 @@ import { Bell, Mail, Phone, Shield, Timer } from "lucide-react";
 import * as React from "react";
 
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 import { Switch } from "@/shared/ui/switch";
 
 function SettingItem({
@@ -26,12 +26,12 @@ function SettingItem({
   return (
     <div className="flex items-start justify-between border-b border-border/50 py-4 last:border-0">
       <div className="flex items-start gap-4">
-        <div className="bg-primary/10 text-primary mt-1 rounded-lg p-2">
+        <div className="mt-1 rounded-lg bg-primary/10 p-2 text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-foreground font-medium">{title}</p>
-          <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>
+          <p className="font-medium text-foreground">{title}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       {children}
@@ -56,7 +56,7 @@ export function NotificationSettings() {
   );
 
   return (
-    <Card className="border-none bg-white/80 shadow-sm backdrop-blur-sm">
+    <SurfaceCard>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
@@ -118,6 +118,6 @@ export function NotificationSettings() {
           </SettingItem>
         </div>
       </CardContent>
-    </Card>
+    </SurfaceCard>
   );
 }

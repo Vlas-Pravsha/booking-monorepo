@@ -1,8 +1,8 @@
 "use client";
 
 import { Save } from "lucide-react";
-import * as React from "react";
 
+import { surfaceClassNames } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 
@@ -15,10 +15,28 @@ export function AdminSettingsPage() {
   return (
     <DashboardShell>
       <PageHeader
+        eyebrow="Конфігурація"
         title="Налаштування"
-        subtitle="Конфігурація закладу та системи"
+        subtitle="Керуйте конфігурацією закладу, графіком, сповіщеннями та правилами бронювання."
+        insights={[
+          {
+            label: "Конфігурація",
+            tone: "primary",
+            value: "4 модулі налаштувань",
+          },
+          {
+            label: "Операційний режим",
+            tone: "success",
+            value: "Заклад працює 7 днів на тиждень",
+          },
+          {
+            label: "Синхронізація",
+            tone: "info",
+            value: "Система активна і готова до змін",
+          },
+        ]}
         action={
-          <Button className="shadow-primary/20 hover:shadow-primary/30 gap-2 shadow-lg transition-all hover:scale-105 hover:shadow-xl">
+          <Button className={surfaceClassNames.actionButton}>
             <Save className="h-4 w-4" />
             Зберегти зміни
           </Button>

@@ -2,19 +2,44 @@
 
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import * as React from "react";
+import type { ReactNode } from "react";
 
+import { semanticToneStyles } from "@/shared/config";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Container } from "@/shared/ui/container";
+
+const floatingBadges = [
+  {
+    className: "top-16 left-[8%] animate-[float_6s_ease-in-out_infinite]",
+    delay: 0,
+    text: "🚀 Безкоштовний старт",
+  },
+  {
+    className: "top-32 right-[10%] animate-[float_6s_ease-in-out_infinite]",
+    delay: 300,
+    text: "⚡ 15 хвилин налаштування",
+  },
+  {
+    className: "bottom-40 left-[12%] animate-[float_6s_ease-in-out_infinite]",
+    delay: 500,
+    text: "💬 Підтримка 24/7",
+  },
+] as const;
+
+const trustPoints = [
+  "Жодної кредитної картки",
+  "Відмова від підписки будь-коли",
+] as const;
 
 function AnimatedShapes() {
   return (
     <>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/4 top-1/4 h-72 w-72 animate-pulse rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-primary/8 blur-3xl delay-1000" />
         <svg
-          className="absolute inset-0 w-full h-full opacity-[0.02]"
+          className="absolute inset-0 h-full w-full opacity-[0.02]"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
@@ -30,10 +55,10 @@ function AnimatedShapes() {
           <rect width="100%" height="100%" fill="url(#dots)" />
         </svg>
       </div>
-      <div className="absolute top-20 left-[5%] w-px h-32 bg-gradient-to-b from-primary/0 via-primary/30 to-primary/0 animate-pulse" />
-      <div className="absolute bottom-32 right-[8%] w-px h-48 bg-gradient-to-b from-primary/0 via-primary/20 to-primary/0 animate-pulse delay-500" />
-      <div className="absolute top-1/3 right-[20%] w-24 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-      <div className="absolute bottom-1/4 left-[15%] w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <div className="absolute left-[5%] top-20 h-32 w-px animate-pulse bg-gradient-to-b from-primary/0 via-primary/30 to-primary/0" />
+      <div className="absolute bottom-32 right-[8%] h-48 w-px animate-pulse bg-gradient-to-b from-primary/0 via-primary/20 to-primary/0 delay-500" />
+      <div className="absolute right-[20%] top-1/3 h-px w-24 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="absolute bottom-1/4 left-[15%] h-px w-16 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
     </>
   );
 }
@@ -43,16 +68,14 @@ function FloatingBadge({
   className,
   delay = 0,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   delay?: number;
 }) {
   return (
     <div
-      className={`absolute hidden lg:block ${className}`}
-      style={{
-        animationDelay: `${delay}ms`,
-      }}
+      className={cn("absolute hidden lg:block", className)}
+      style={{ animationDelay: `${delay}ms` }}
     >
       {children}
     </div>
@@ -64,38 +87,23 @@ export function LandingCTA() {
     <section className="relative overflow-hidden py-24 sm:py-36 lg:py-44">
       <AnimatedShapes />
 
-      <FloatingBadge
-        className="top-16 left-[8%] animate-[float_6s_ease-in-out_infinite]"
-        delay={0}
-      >
-        <div className="rounded-full border border-primary/20 bg-card/80 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
-          🚀 Безкоштовний старт
-        </div>
-      </FloatingBadge>
-
-      <FloatingBadge
-        className="top-32 right-[10%] animate-[float_6s_ease-in-out_infinite]"
-        delay={300}
-      >
-        <div className="rounded-full border border-primary/20 bg-card/80 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
-          ⚡ 15 хвилин налаштування
-        </div>
-      </FloatingBadge>
-
-      <FloatingBadge
-        className="bottom-40 left-[12%] animate-[float_6s_ease-in-out_infinite]"
-        delay={500}
-      >
-        <div className="rounded-full border border-primary/20 bg-card/80 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
-          💬 Підтримка 24/7
-        </div>
-      </FloatingBadge>
+      {floatingBadges.map((badge) => (
+        <FloatingBadge
+          key={badge.text}
+          className={badge.className}
+          delay={badge.delay}
+        >
+          <div className="rounded-full border border-primary/20 bg-card/80 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-md">
+            {badge.text}
+          </div>
+        </FloatingBadge>
+      ))}
 
       <Container className="relative">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-5 py-2 sm:mb-8">
-            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-            <span className="text-xs font-semibold text-primary uppercase tracking-wider sm:text-sm">
+            <Sparkles className="h-4 w-4 animate-pulse text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary sm:text-sm">
               Почніть зараз
             </span>
           </div>
@@ -138,14 +146,17 @@ export function LandingCTA() {
           </div>
 
           <div className="mt-12 flex flex-col items-center justify-center gap-4 text-sm text-muted-foreground sm:mt-16 sm:flex-row sm:gap-8">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Жодної кредитної картки</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Відмова від підписки будь-коли</span>
-            </div>
+            {trustPoints.map((point) => (
+              <div key={point} className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    semanticToneStyles.success.dot
+                  )}
+                />
+                <span>{point}</span>
+              </div>
+            ))}
           </div>
         </div>
       </Container>

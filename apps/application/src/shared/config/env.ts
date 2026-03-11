@@ -6,7 +6,7 @@ export const env = createEnv({
    * Змінні для клієнта (мають починатися з NEXT_PUBLIC_).
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_API_URL: z.url(),
   },
 
   /**
@@ -19,8 +19,8 @@ export const env = createEnv({
    * Тут потрібно перерахувати ТІЛЬКИ клієнтські та спільні змінні.
    */
   experimental__runtimeEnv: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NODE_ENV: process.env.NODE_ENV,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
 
   /**
