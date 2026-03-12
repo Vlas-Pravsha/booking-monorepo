@@ -1,13 +1,19 @@
-import { MoreHorizontal } from "lucide-react";
+"use client";
 
+import { MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
+
+import { useAppSelector } from "@/app/store/hooks";
 import type { Customer } from "@/entities/customer";
+import { useUpdateCustomerVipMutation } from "@/entities/customer";
+import { selectAuthSession } from "@/features/auth/session";
+import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 
@@ -16,6 +22,34 @@ interface CustomerActionsMenuProps {
 }
 
 export function CustomerActionsMenu({ customer }: CustomerActionsMenuProps) {
+  const session = useAppSelector(selectAuthSession);
+  const updateVipMutation = useUpdateCustomerVipMutation(
+    session?.accessToken ?? null
+  );
+
+  const handleToggleVip = () => {
+    updateVipMutation.mutate(
+      {
+        customerId: customer.id,
+        vip: !customer.vip,
+      },
+      {
+        onError: (error) => {
+          toast.error(
+            isApiError(error)
+              ? error.message
+              : "Не вдалося оновити статус клієнта."
+          );
+        },
+        onSuccess: () => {
+          toast.success(
+            customer.vip ? "VIP статус знято" : "Клієнта додано до VIP"
+          );
+        },
+      }
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,16 +62,13 @@ export function CustomerActionsMenu({ customer }: CustomerActionsMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>Деталі</DropdownMenuItem>
-        <DropdownMenuItem>Редагувати</DropdownMenuItem>
-        <DropdownMenuItem>Історія бронювань</DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           className={
             customer.vip
               ? semanticToneStyles.warning.text
               : semanticToneStyles.primary.text
           }
+          onClick={handleToggleVip}
         >
           {customer.vip ? "Зняти VIP статус" : "Зробити VIP"}
         </DropdownMenuItem>

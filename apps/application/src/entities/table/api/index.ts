@@ -1,27 +1,72 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { mockRequest } from "@/shared/api";
+import { apiRequest, getAuthHeaders } from "@/shared/api";
+import type { ApiResult } from "@/shared/api";
 
-import { TABLES } from "../model/mock";
-import type { Table } from "../model/types";
+import type { TableListResponse } from "../model/types";
 
 export const tableQueryKeys = {
   all: ["tables"] as const,
-  list: () => [...tableQueryKeys.all, "list"] as const,
+  list: (accessToken: string | null) =>
+    [...tableQueryKeys.all, "list", accessToken] as const,
 };
 
 export const tableApi = {
-  getList: (): Promise<Table[]> =>
-    mockRequest(TABLES, {
-      delayMs: 250,
-    }),
+  getList: async (accessToken: string): Promise<TableListResponse> => {
+    const response = await apiRequest<ApiResult<TableListResponse>>(
+      "/api/admin/tables",
+      {
+        headers: getAuthHeaders({ accessToken }),
+        method: "GET",
+      }
+    );
+
+    return response.data;
+  },
+  updateStatus: async (
+    accessToken: string,
+    tableId: string,
+    status: "available" | "maintenance"
+  ): Promise<{ success: boolean }> => {
+    const response = await apiRequest<ApiResult<{ success: boolean }>>(
+      `/api/admin/tables/${encodeURIComponent(tableId)}/status`,
+      {
+        body: {
+          status,
+        },
+        headers: getAuthHeaders({ accessToken }),
+        method: "PATCH",
+      }
+    );
+
+    return response.data;
+  },
 };
 
-export const useTablesQuery = () =>
+export const useTablesQuery = (accessToken: string | null) =>
   useQuery({
-    initialData: TABLES,
-    queryFn: () => tableApi.getList(),
-    queryKey: tableQueryKeys.list(),
+    enabled: Boolean(accessToken),
+    queryFn: () => tableApi.getList(accessToken ?? ""),
+    queryKey: tableQueryKeys.list(accessToken),
   });
+
+export const useUpdateTableStatusMutation = (accessToken: string | null) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      status,
+      tableId,
+    }: {
+      tableId: string;
+      status: "available" | "maintenance";
+    }) => tableApi.updateStatus(accessToken ?? "", tableId, status),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: tableQueryKeys.all,
+      });
+    },
+  });
+};

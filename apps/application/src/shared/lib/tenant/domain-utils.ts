@@ -31,3 +31,11 @@ export function getTenantSlug(host: string | null): string | null {
 
   return getSubdomain(host);
 }
+
+export function buildTenantSiteUrl(domain: string): string {
+  const protocol = PROXY_CONFIG.rootDomain.includes("localhost")
+    ? "http"
+    : "https";
+
+  return `${protocol}://${domain}.${PROXY_CONFIG.rootDomain}`;
+}

@@ -1,5 +1,13 @@
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+"use client";
 
+import { MoreHorizontal, Wrench } from "lucide-react";
+import { toast } from "sonner";
+
+import { useAppSelector } from "@/app/store/hooks";
+import type { Table } from "@/entities/table";
+import { useUpdateTableStatusMutation } from "@/entities/table";
+import { selectAuthSession } from "@/features/auth/session";
+import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
@@ -9,7 +17,43 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 
-export function TableActionsMenu() {
+interface TableActionsMenuProps {
+  table: Table;
+}
+
+export function TableActionsMenu({ table }: TableActionsMenuProps) {
+  const session = useAppSelector(selectAuthSession);
+  const updateStatusMutation = useUpdateTableStatusMutation(
+    session?.accessToken ?? null
+  );
+  const nextStatus =
+    table.status === "maintenance" ? "available" : "maintenance";
+
+  const handleToggleMaintenance = () => {
+    updateStatusMutation.mutate(
+      {
+        status: nextStatus,
+        tableId: table.id,
+      },
+      {
+        onError: (error) => {
+          toast.error(
+            isApiError(error)
+              ? error.message
+              : "Не вдалося оновити технічний статус столу."
+          );
+        },
+        onSuccess: () => {
+          toast.success(
+            nextStatus === "maintenance"
+              ? "Стіл позначено як недоступний"
+              : "Стіл повернуто в роботу"
+          );
+        },
+      }
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -18,13 +62,18 @@ export function TableActionsMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>
-          <Edit className="mr-2 h-4 w-4" />
-          Редагувати
-        </DropdownMenuItem>
-        <DropdownMenuItem className={semanticToneStyles.danger.text}>
-          <Trash2 className="mr-2 h-4 w-4" />
-          Видалити
+        <DropdownMenuItem
+          className={
+            nextStatus === "maintenance"
+              ? semanticToneStyles.danger.text
+              : semanticToneStyles.success.text
+          }
+          onClick={handleToggleMaintenance}
+        >
+          <Wrench className="mr-2 h-4 w-4" />
+          {nextStatus === "maintenance"
+            ? "Позначити як на обслуговуванні"
+            : "Повернути в роботу"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

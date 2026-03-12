@@ -1,53 +1,197 @@
 "use client";
 
-import { Save } from "lucide-react";
+import { ExternalLink, Save, Sparkles } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
+import { toast } from "sonner";
 
+import { useAppSelector } from "@/app/store/hooks";
+import {
+  applyRestaurantDraftPatch,
+  createRestaurantDraft,
+  RestaurantIdentitySection,
+  RestaurantOperationsSection,
+  RestaurantSiteContentSection,
+  toRestaurantUpsertPayload,
+  useMyRestaurantQuery,
+  useUpsertMyRestaurantMutation,
+} from "@/entities/restaurant";
+import type { RestaurantUpsertPayload } from "@/entities/restaurant";
+import { selectAuthSession } from "@/features/auth/session";
+import { isApiError } from "@/shared/api";
 import { surfaceClassNames } from "@/shared/config";
+import { buildTenantSiteUrl } from "@/shared/lib/tenant";
 import { Button } from "@/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 
-import { BookingSettings } from "./sections/booking-settings";
-import { GeneralSettings } from "./sections/general-settings";
-import { NotificationSettings } from "./sections/notification-settings";
-import { ScheduleSettings } from "./sections/schedule-settings";
+const useRestaurantSettingsForm = (accessToken: string | null) => {
+  const [formData, setFormData] = React.useState<RestaurantUpsertPayload>(
+    createRestaurantDraft()
+  );
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  const { data: restaurant, isLoading } = useMyRestaurantQuery(
+    accessToken,
+    Boolean(accessToken)
+  );
+
+  React.useEffect(() => {
+    if (isLoading || isInitialized) {
+      return;
+    }
+
+    setFormData(
+      restaurant
+        ? toRestaurantUpsertPayload(restaurant)
+        : createRestaurantDraft()
+    );
+    setIsInitialized(true);
+  }, [isInitialized, isLoading, restaurant]);
+
+  const updateFormData = React.useCallback(
+    (patch: Partial<RestaurantUpsertPayload>) => {
+      setFormData((previousState) =>
+        applyRestaurantDraftPatch(previousState, patch)
+      );
+    },
+    []
+  );
+
+  return {
+    formData,
+    isInitialized,
+    setFormData,
+    updateFormData,
+  };
+};
 
 export function AdminSettingsPage() {
+  const session = useAppSelector(selectAuthSession);
+  const settingsForm = useRestaurantSettingsForm(session?.accessToken ?? null);
+  const saveMutation = useUpsertMyRestaurantMutation(
+    session?.accessToken ?? null
+  );
+  const handleFormChange = settingsForm.updateFormData;
+  const enabledSectionsCount = [
+    settingsForm.formData.showGallery,
+    settingsForm.formData.showMenu,
+    settingsForm.formData.showReviews,
+  ].filter(Boolean).length;
+
+  const handleSave = () => {
+    saveMutation.mutate(settingsForm.formData, {
+      onError: (error) => {
+        toast.error(
+          isApiError(error)
+            ? error.message
+            : "Не вдалося зберегти налаштування. Спробуйте ще раз."
+        );
+      },
+      onSuccess: (savedRestaurant) => {
+        settingsForm.setFormData(toRestaurantUpsertPayload(savedRestaurant));
+        toast.success("Налаштування збережено");
+      },
+    });
+  };
+
+  if (!settingsForm.isInitialized) {
+    return (
+      <DashboardShell>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-5 text-sm text-muted-foreground shadow-xl">
+            Завантажуємо налаштування ресторану...
+          </div>
+        </div>
+      </DashboardShell>
+    );
+  }
+
   return (
     <DashboardShell>
       <PageHeader
         eyebrow="Конфігурація"
         title="Налаштування"
-        subtitle="Керуйте конфігурацією закладу, графіком, сповіщеннями та правилами бронювання."
+        subtitle="Тепер адмінка керує тим самим контентом, який бачать гості на доменному сайті."
         insights={[
           {
-            label: "Конфігурація",
+            label: "Домен",
             tone: "primary",
-            value: "4 модулі налаштувань",
+            value: settingsForm.formData.domain
+              ? `${settingsForm.formData.domain}.table-reserve.com`
+              : "ще не задано",
           },
           {
-            label: "Операційний режим",
+            label: "Вітрина",
             tone: "success",
-            value: "Заклад працює 7 днів на тиждень",
+            value: `${enabledSectionsCount}/3 секції увімкнено`,
           },
           {
-            label: "Синхронізація",
+            label: "Контент",
             tone: "info",
-            value: "Система активна і готова до змін",
+            value: `${settingsForm.formData.menuHighlights.length + settingsForm.formData.gallery.length + settingsForm.formData.reviews.length} елементів`,
           },
         ]}
         action={
-          <Button className={surfaceClassNames.actionButton}>
-            <Save className="h-4 w-4" />
-            Зберегти зміни
-          </Button>
+          <div className="flex items-center gap-3">
+            {settingsForm.formData.domain ? (
+              <Button variant="outline" asChild>
+                <Link
+                  href={buildTenantSiteUrl(settingsForm.formData.domain)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Переглянути сайт
+                </Link>
+              </Button>
+            ) : null}
+            <Button
+              className={surfaceClassNames.actionButton}
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+            >
+              <Save className="h-4 w-4" />
+              {saveMutation.isPending ? "Зберігаємо..." : "Зберегти зміни"}
+            </Button>
+          </div>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <GeneralSettings />
-        <ScheduleSettings />
-        <NotificationSettings />
-        <BookingSettings />
+      <div className="grid gap-6">
+        <Card className="border-border/60 bg-linear-to-br from-primary/10 via-background to-background">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Що змінилось
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-border/60 bg-background/80 p-4">
+              З онбордингу та адмінки тепер редагується одна і та сама модель
+              ресторану.
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-background/80 p-4">
+              Меню, галерея та відгуки можна включати або вимикати незалежно.
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-background/80 p-4">
+              Доменний сайт виріс із простої броні в повноцінну презентацію
+              бренду.
+            </div>
+          </CardContent>
+        </Card>
+
+        <RestaurantIdentitySection
+          value={settingsForm.formData}
+          onChange={handleFormChange}
+        />
+        <RestaurantSiteContentSection
+          value={settingsForm.formData}
+          onChange={handleFormChange}
+        />
+        <RestaurantOperationsSection
+          value={settingsForm.formData}
+          onChange={handleFormChange}
+        />
       </div>
     </DashboardShell>
   );

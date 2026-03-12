@@ -1,3 +1,7 @@
-export { customerApi, customerQueryKeys, useCustomersQuery } from "./api";
-export { CUSTOMERS } from "./model/mock";
-export type { Customer } from "./model/types";
+export {
+  customerApi,
+  customerQueryKeys,
+  useCustomersQuery,
+  useUpdateCustomerVipMutation,
+} from "./api";
+export type { Customer, CustomerListResponse } from "./model/types";

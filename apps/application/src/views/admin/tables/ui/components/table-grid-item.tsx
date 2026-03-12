@@ -34,7 +34,7 @@ export function TableGridItem({ table }: TableGridItemProps) {
             {table.name}
           </span>
         </div>
-        <TableActionsMenu />
+        <TableActionsMenu table={table} />
       </div>
 
       <div className="relative mt-6 flex items-end justify-between gap-3">

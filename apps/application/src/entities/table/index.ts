@@ -1,6 +1,10 @@
-export { tableApi, tableQueryKeys, useTablesQuery } from "./api";
-export { TABLES } from "./model/mock";
-export type { Table } from "./model/types";
+export {
+  tableApi,
+  tableQueryKeys,
+  useTablesQuery,
+  useUpdateTableStatusMutation,
+} from "./api";
+export type { Table, TableListResponse } from "./model/types";
 export {
   getTableShapeLabel,
   getTableStatusBadgeClass,

@@ -1,38 +1,14 @@
-export interface OnboardingTable {
-  name: string;
-  seats: number;
-}
+import { createRestaurantDraft } from "@/entities/restaurant";
+import type { RestaurantUpsertPayload } from "@/entities/restaurant";
 
-export interface OnboardingData {
-  restaurantName: string;
-  address: string;
-  phone: string;
-  email: string;
-  openingTime: string;
-  closingTime: string;
-  averageDuration: number;
-  tables: OnboardingTable[];
-}
+export type OnboardingData = RestaurantUpsertPayload;
 
-export const ONBOARDING_INITIAL_DATA: OnboardingData = {
-  address: "",
-  averageDuration: 90,
-  closingTime: "22:00",
-  email: "",
-  openingTime: "10:00",
-  phone: "",
-  restaurantName: "",
-  tables: [
-    { name: "Стіл 1", seats: 2 },
-    { name: "Стіл 2", seats: 4 },
-    { name: "Стіл 3", seats: 4 },
-    { name: "Стіл 4", seats: 6 },
-  ],
-};
+export const ONBOARDING_INITIAL_DATA: OnboardingData = createRestaurantDraft();
 
 export const ONBOARDING_STEPS = [
   { id: 0, title: "Вітання" },
   { id: 1, title: "Про ресторан" },
-  { id: 2, title: "Графік" },
-  { id: 3, title: "Готово" },
+  { id: 2, title: "Контент" },
+  { id: 3, title: "Графік" },
+  { id: 4, title: "Готово" },
 ] as const;

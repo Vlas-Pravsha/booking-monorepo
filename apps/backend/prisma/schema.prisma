@@ -18,6 +18,7 @@ model User {
   updatedAt    DateTime   @updatedAt
   lastLoginAt  DateTime?
   sessions     AuthSession[]
+  restaurant   Restaurant?
 }
 
 model AuthSession {
@@ -34,4 +35,158 @@ model AuthSession {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Restaurant {
+  id                      String                  @id @default(cuid())
+  ownerId                 String                  @unique
+  domain                  String                  @unique
+  name                    String
+  shortDescription        String
+  description             String
+  logo                    String?
+  heroImage               String?
+  address                 String
+  phone                   String
+  email                   String?
+  workHours               String
+  openingTime             String
+  closingTime             String
+  averageDuration         Int                     @default(90)
+  cuisine                 String
+  priceRange              String                  @default("₴₴")
+  showMenu                Boolean                 @default(false)
+  showGallery             Boolean                 @default(false)
+  showReviews             Boolean                 @default(false)
+  instagram               String?
+  facebook                String?
+  telegram                String?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  owner                   User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  customers               Customer[]
+  bookings                Booking[]
+  features                RestaurantFeature[]
+  menuHighlights          RestaurantMenuItem[]
+  reviews                 RestaurantReview[]
+  gallery                 RestaurantGalleryImage[]
+  tables                  RestaurantTable[]
+
+  @@index([ownerId])
+}
+
+model RestaurantFeature {
+  id           String      @id @default(cuid())
+  restaurantId String
+  label        String
+  position     Int
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, position])
+}
+
+model RestaurantMenuItem {
+  id           String      @id @default(cuid())
+  restaurantId String
+  name         String
+  description  String
+  price        Int
+  image        String?
+  position     Int
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, position])
+}
+
+model RestaurantReview {
+  id           String      @id @default(cuid())
+  restaurantId String
+  author       String
+  avatar       String?
+  rating       Int
+  text         String
+  date         String
+  position     Int
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, position])
+}
+
+model RestaurantGalleryImage {
+  id           String      @id @default(cuid())
+  restaurantId String
+  image        String
+  position     Int
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, position])
+}
+
+model RestaurantTable {
+  id           String      @id @default(cuid())
+  restaurantId String
+  name         String
+  seats        Int
+  position     Int
+  statusOverride String?
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+
+  @@index([restaurantId, position])
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  restaurantId String
+  name         String
+  phone        String
+  email        String?
+  notes        String        @default("")
+  vip          Boolean       @default(false)
+  isSample     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tags         CustomerTag[]
+  bookings     Booking[]
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, vip])
+}
+
+model CustomerTag {
+  id         String    @id @default(cuid())
+  customerId String
+  label      String
+  position   Int
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, position])
+}
+
+model Booking {
+  id            String           @id @default(cuid())
+  restaurantId  String
+  customerId    String?
+  tableId       String?
+  customerName  String
+  customerPhone String
+  guestCount    Int
+  startAt       DateTime
+  endAt         DateTime
+  status        String
+  source        String
+  totalAmount   Int              @default(0)
+  note          String           @default("")
+  isSample      Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  restaurant    Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer      Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  table         RestaurantTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId, startAt])
+  @@index([restaurantId, status])
+  @@index([customerId, startAt])
+  @@index([tableId, startAt])
 }

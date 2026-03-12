@@ -20,7 +20,19 @@ export function BookingTableRow({ booking }: BookingTableRowProps) {
     <tr className="group">
       <td className="rounded-l-[22px] border-y border-l border-border/70 bg-card/82 p-4 align-middle shadow-[0_18px_36px_-30px_rgba(15,23,42,0.2)] transition-all duration-300 group-hover:border-primary/15 group-hover:bg-card">
         <div>
-          <p className="font-medium text-foreground">{booking.customerName}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-foreground">
+              {booking.customerName}
+            </p>
+            {booking.isSample ? (
+              <Badge
+                variant="secondary"
+                className="rounded-full border-warning/20 bg-warning/10 px-2 py-0.5 text-[0.65rem] font-semibold text-warning"
+              >
+                Пробні дані
+              </Badge>
+            ) : null}
+          </div>
           <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
             {booking.customerPhone}
@@ -62,7 +74,7 @@ export function BookingTableRow({ booking }: BookingTableRowProps) {
         </Badge>
       </td>
       <td className="rounded-r-[22px] border-y border-r border-border/70 bg-card/82 p-4 align-middle transition-all duration-300 group-hover:border-primary/15 group-hover:bg-card">
-        <BookingActionsMenu status={booking.status} />
+        <BookingActionsMenu bookingId={booking.id} status={booking.status} />
       </td>
     </tr>
   );

@@ -47,7 +47,7 @@ export function TableListItem({ table }: TableListItemProps) {
         >
           {getTableStatusLabel(table.status)}
         </Badge>
-        <TableActionsMenu />
+        <TableActionsMenu table={table} />
       </div>
     </div>
   );

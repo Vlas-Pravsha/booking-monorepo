@@ -11,7 +11,18 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { toast } from "sonner";
 
+import { useAppSelector } from "@/app/store/hooks";
+import {
+  applyRestaurantDraftPatch,
+  createRestaurantDraft,
+  toRestaurantUpsertPayload,
+  useMyRestaurantQuery,
+  useUpsertMyRestaurantMutation,
+} from "@/entities/restaurant";
+import { selectAuthSession } from "@/features/auth/session";
+import { isApiError } from "@/shared/api";
 import { cn } from "@/shared/lib/utils";
 import {
   AnimatedBackground,
@@ -22,69 +33,174 @@ import { Button } from "@/shared/ui/button";
 import { CompletionStep } from "../steps/completion-step";
 import { RestaurantInfoStep } from "../steps/restaurant-info-step";
 import { ScheduleStep } from "../steps/schedule-step";
+import { SiteContentStep } from "../steps/site-content-step";
 import { WelcomeStep } from "../steps/welcome-step";
 import { ONBOARDING_INITIAL_DATA, ONBOARDING_STEPS } from "../types";
 import type { OnboardingData } from "../types";
 
-const STEP_ICONS = [Sparkles, Utensils, Clock, CheckCircle2];
+const STEP_ICONS = [Sparkles, Utensils, Sparkles, Clock, CheckCircle2];
 
-export function OnboardingFlow() {
-  const [currentStep, setCurrentStep] = React.useState(0);
+const getCanProceed = (currentStep: number, data: OnboardingData): boolean => {
+  if (currentStep === 1) {
+    return (
+      data.name.trim().length > 0 &&
+      data.domain.trim().length > 1 &&
+      data.shortDescription.trim().length > 0 &&
+      data.address.trim().length > 0
+    );
+  }
+
+  if (currentStep === 3) {
+    return data.tables.length > 0;
+  }
+
+  return true;
+};
+
+const getNextButtonLabel = (
+  currentStep: number,
+  isPending: boolean
+): string => {
+  if (isPending) {
+    return "Зберігаємо...";
+  }
+
+  if (currentStep === ONBOARDING_STEPS.length - 2) {
+    return "Завершити";
+  }
+
+  return "Далі";
+};
+
+const renderOnboardingStep = (
+  currentStep: number,
+  data: OnboardingData,
+  updateData: (data: Partial<OnboardingData>) => void,
+  savedDomain: string
+) => {
+  switch (currentStep) {
+    case 0: {
+      return <WelcomeStep />;
+    }
+    case 1: {
+      return <RestaurantInfoStep data={data} updateData={updateData} />;
+    }
+    case 2: {
+      return <SiteContentStep data={data} updateData={updateData} />;
+    }
+    case 3: {
+      return <ScheduleStep data={data} updateData={updateData} />;
+    }
+    case 4: {
+      return <CompletionStep domain={savedDomain || data.domain} />;
+    }
+    default: {
+      return null;
+    }
+  }
+};
+
+const saveOnboardingRestaurant = async (
+  data: OnboardingData,
+  mutateAsync: ReturnType<typeof useUpsertMyRestaurantMutation>["mutateAsync"],
+  setSavedDomain: (domain: string) => void,
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>
+) => {
+  try {
+    const savedRestaurant = await mutateAsync(data);
+    setSavedDomain(savedRestaurant.domain);
+    toast.success("Онбординг збережено");
+    setCurrentStep((previousStep) => previousStep + 1);
+  } catch (error) {
+    toast.error(
+      isApiError(error)
+        ? error.message
+        : "Не вдалося зберегти ресторан. Спробуйте ще раз."
+    );
+  }
+};
+
+const useOnboardingRestaurantDraft = (accessToken: string | null) => {
   const [data, setData] = React.useState<OnboardingData>(
     ONBOARDING_INITIAL_DATA
   );
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [savedDomain, setSavedDomain] = React.useState("");
+  const { data: existingRestaurant, isLoading } = useMyRestaurantQuery(
+    accessToken,
+    Boolean(accessToken)
+  );
 
-  const updateData = (newData: Partial<OnboardingData>): void => {
-    setData((prev: OnboardingData) => ({ ...prev, ...newData }));
-  };
-
-  const handleNext = () => {
-    if (currentStep < ONBOARDING_STEPS.length - 1) {
-      setCurrentStep((prev) => prev + 1);
+  React.useEffect(() => {
+    if (isLoading || isInitialized) {
+      return;
     }
-  };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
+    if (existingRestaurant) {
+      setData(toRestaurantUpsertPayload(existingRestaurant));
+      setSavedDomain(existingRestaurant.domain);
+    } else {
+      setData(createRestaurantDraft());
     }
-  };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1: {
-        return data.restaurantName.trim().length > 0;
-      }
-      case 2: {
-        return data.tables.length > 0;
-      }
-      default: {
-        return true;
-      }
-    }
-  };
+    setIsInitialized(true);
+  }, [existingRestaurant, isInitialized, isLoading]);
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 0: {
-        return <WelcomeStep />;
-      }
-      case 1: {
-        return <RestaurantInfoStep data={data} updateData={updateData} />;
-      }
-      case 2: {
-        return <ScheduleStep data={data} updateData={updateData} />;
-      }
-      case 3: {
-        return <CompletionStep restaurantName={data.restaurantName} />;
-      }
-      default: {
-        return null;
-      }
-    }
-  };
+  const updateData = React.useCallback((patch: Partial<OnboardingData>) => {
+    setData((previousState) => applyRestaurantDraftPatch(previousState, patch));
+  }, []);
 
+  return {
+    data,
+    isInitialized,
+    savedDomain,
+    setSavedDomain,
+    updateData,
+  };
+};
+
+export function OnboardingFlow() {
+  const session = useAppSelector(selectAuthSession);
+  const [currentStep, setCurrentStep] = React.useState(0);
+  const onboardingDraft = useOnboardingRestaurantDraft(
+    session?.accessToken ?? null
+  );
+  const saveRestaurantMutation = useUpsertMyRestaurantMutation(
+    session?.accessToken ?? null
+  );
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
+
+  const handleNext = async () => {
+    if (currentStep >= ONBOARDING_STEPS.length - 1) {
+      return;
+    }
+
+    if (currentStep === ONBOARDING_STEPS.length - 2) {
+      await saveOnboardingRestaurant(
+        onboardingDraft.data,
+        saveRestaurantMutation.mutateAsync,
+        onboardingDraft.setSavedDomain,
+        setCurrentStep
+      );
+      return;
+    }
+
+    setCurrentStep((previousStep) => previousStep + 1);
+  };
+
+  const handleNextClick = () => {
+    handleNext();
+  };
+
+  if (!onboardingDraft.isInitialized) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-5 text-sm text-muted-foreground shadow-xl">
+          Завантажуємо конфігурацію закладу...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -113,10 +229,10 @@ export function OnboardingFlow() {
       </header>
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-2xl">
-          {!isLastStep && (
+        <div className="w-full max-w-5xl">
+          {isLastStep ? null : (
             <div className="mb-12">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 {ONBOARDING_STEPS.map(
                   (step: (typeof ONBOARDING_STEPS)[number], index: number) => {
                     const Icon = STEP_ICONS[index];
@@ -145,7 +261,7 @@ export function OnboardingFlow() {
                         </div>
                         <span
                           className={cn(
-                            "mt-2 text-xs font-medium hidden sm:block",
+                            "mt-2 hidden text-xs font-medium sm:block",
                             isActive ? "text-primary" : "text-muted-foreground"
                           )}
                         >
@@ -157,7 +273,7 @@ export function OnboardingFlow() {
                 )}
               </div>
 
-              <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
+              <div className="relative h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500"
                   style={{
@@ -168,14 +284,21 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {renderStep()}
+          {renderOnboardingStep(
+            currentStep,
+            onboardingDraft.data,
+            onboardingDraft.updateData,
+            onboardingDraft.savedDomain
+          )}
 
-          {!isLastStep && (
+          {isLastStep ? null : (
             <div className="mt-12 flex justify-between">
               <Button
                 variant="outline"
                 type="button"
-                onClick={handleBack}
+                onClick={() =>
+                  setCurrentStep((previousStep) => previousStep - 1)
+                }
                 disabled={currentStep === 0}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -183,12 +306,16 @@ export function OnboardingFlow() {
               </Button>
               <Button
                 type="button"
-                onClick={handleNext}
-                disabled={!canProceed()}
+                onClick={handleNextClick}
+                disabled={
+                  !getCanProceed(currentStep, onboardingDraft.data) ||
+                  saveRestaurantMutation.isPending
+                }
               >
-                {currentStep === ONBOARDING_STEPS.length - 2
-                  ? "Завершити"
-                  : "Далі"}
+                {getNextButtonLabel(
+                  currentStep,
+                  saveRestaurantMutation.isPending
+                )}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

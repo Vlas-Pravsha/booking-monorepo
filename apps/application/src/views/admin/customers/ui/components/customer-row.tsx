@@ -34,6 +34,14 @@ export function CustomerRow({ customer }: CustomerRowProps) {
             {customer.vip && (
               <Star className="h-4 w-4 fill-warning text-warning" />
             )}
+            {customer.isSample ? (
+              <Badge
+                variant="secondary"
+                className="border-warning/20 bg-warning/10 text-xs text-warning"
+              >
+                Пробні дані
+              </Badge>
+            ) : null}
           </div>
 
           <div className="mt-1 flex items-center gap-3">
@@ -60,6 +68,11 @@ export function CustomerRow({ customer }: CustomerRowProps) {
               ))}
             </div>
           )}
+          {customer.notes ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {customer.notes}
+            </p>
+          ) : null}
         </div>
       </div>
 

@@ -3,43 +3,45 @@ import * as React from "react";
 
 import type { Restaurant } from "@/entities/restaurant";
 
+import { RestaurantSectionHeading } from "./restaurant-section-heading";
+
 interface RestaurantReviewsProps {
   restaurant: Restaurant;
 }
 
 export function RestaurantReviews({ restaurant }: RestaurantReviewsProps) {
   return (
-    <section id="reviews" className="py-20 lg:py-32 px-4 lg:px-6 bg-[#0c0c0e]">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <span className="text-xs text-white/40 uppercase tracking-wider">
-            Відгуки
-          </span>
-          <h2 className="text-3xl lg:text-5xl font-bold mt-2">
-            Що кажуть гості
-          </h2>
+    <section
+      id="reviews"
+      className="bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] px-4 py-20 lg:px-6 lg:py-28"
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+          <RestaurantSectionHeading
+            eyebrow="Відгуки"
+            title="Що кажуть гості"
+            description="Реальні враження формують останній шар довіри: підтверджують сервіс, атмосферу та стабільність якості."
+          />
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
           {restaurant.reviews.map((review) => (
             <div
-              key={review.author}
-              className="bg-[#09090b] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all"
+              key={review.id}
+              className="rounded-[2rem] border border-[color:var(--tenant-border)] bg-[rgba(12,12,14,0.86)] p-6 shadow-[0_24px_64px_-42px_rgba(0,0,0,0.95)] transition-all duration-300 hover:-translate-y-1 hover:border-white/18"
             >
-              <div className="flex items-center gap-1 mb-4">
+              <div className="mb-4 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, j) => (
-                  // eslint-disable-next-line react/no-array-index-key
                   <Star
                     key={`star-${String(j)}`}
-                    className={`w-3 h-3 ${j < review.rating ? "fill-white text-white" : "text-white/20"}`}
+                    className={`h-3 w-3 ${j < review.rating ? "fill-white text-white" : "text-white/20"}`}
                   />
                 ))}
               </div>
-              <p className="text-white/60 text-sm leading-relaxed mb-4">
+              <p className="mb-5 text-sm leading-relaxed text-[color:var(--tenant-muted)]">
                 &quot;{review.text}&quot;
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-medium">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4e3cb]/14 text-xs font-semibold text-[#f4e3cb]">
                   {review.author.charAt(0)}
                 </div>
                 <div>

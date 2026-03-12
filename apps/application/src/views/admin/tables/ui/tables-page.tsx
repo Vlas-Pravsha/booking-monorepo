@@ -1,14 +1,20 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import * as React from "react";
 
+import { useAppSelector } from "@/app/store/hooks";
 import { useTablesQuery } from "@/entities/table";
+import { selectAuthSession } from "@/features/auth/session";
 import { surfaceClassNames } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 import { SurfaceCard } from "@/shared/ui/surface-card";
+import {
+  MissingRestaurantState,
+  SampleDataNotice,
+} from "@/views/admin/shared/ui/data-state-cards";
 
 import { getTableStats } from "../lib/get-table-stats";
 import type { ViewMode } from "../model/types";
@@ -17,44 +23,81 @@ import { TableListItem } from "./components/table-list-item";
 import { TableViewModeToggle } from "./components/table-view-mode-toggle";
 import { TablesStats } from "./components/tables-stats";
 
-export function AdminTablesPage() {
-  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
-  const { data: tables = [] } = useTablesQuery();
+const EMPTY_TABLES: never[] = [];
 
+function useTablesPageData(accessToken: string | null) {
+  const tablesQuery = useTablesQuery(accessToken);
+  const tables = tablesQuery.data?.tables ?? EMPTY_TABLES;
+  const restaurant = tablesQuery.data?.restaurant ?? null;
   const stats = React.useMemo(() => getTableStats(tables), [tables]);
+
+  return { restaurant, stats, tables, tablesQuery };
+}
+
+export function AdminTablesPage() {
+  const session = useAppSelector(selectAuthSession);
+  const accessToken = session?.accessToken ?? null;
+  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
+  const pageData = useTablesPageData(accessToken);
+
+  if (pageData.tablesQuery.isLoading) {
+    return (
+      <DashboardShell>
+        <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-10 text-sm text-muted-foreground shadow-xl">
+          Завантажуємо план залу...
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  if (!pageData.restaurant) {
+    return (
+      <DashboardShell>
+        <MissingRestaurantState />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
       <PageHeader
         eyebrow="План зали"
         title="Столи"
-        subtitle="План залу, доступність і стани столиків у зручному візуальному форматі."
+        subtitle="Стани столів будуються з реального плану залу, бронювань і технічного статусу."
         insights={[
           {
             label: "Всього столів",
             tone: "primary",
-            value: `${stats.total} позицій`,
+            value: `${pageData.stats.total} позицій`,
           },
           {
             label: "Готові до посадки",
             tone: "success",
-            value: `${stats.available} вільних`,
+            value: `${pageData.stats.available} вільних`,
           },
           {
             label: "Місткість",
             tone: "info",
-            value: `${stats.totalSeats} місць загалом`,
+            value: `${pageData.stats.totalSeats} місць загалом`,
           },
         ]}
         action={
-          <Button className={surfaceClassNames.actionButton}>
-            <Plus className="h-4 w-4" />
-            Додати стіл
+          <Button
+            className={surfaceClassNames.actionButton}
+            onClick={() => {
+              pageData.tablesQuery.refetch();
+            }}
+            disabled={pageData.tablesQuery.isFetching}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Оновити план
           </Button>
         }
       />
 
-      <TablesStats stats={stats} />
+      {pageData.tablesQuery.data?.hasSampleData ? <SampleDataNotice /> : null}
+
+      <TablesStats stats={pageData.stats} />
 
       <SurfaceCard>
         <CardHeader>
@@ -77,13 +120,13 @@ export function AdminTablesPage() {
         <CardContent>
           {viewMode === "grid" ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {tables.map((table) => (
+              {pageData.tables.map((table) => (
                 <TableGridItem key={table.id} table={table} />
               ))}
             </div>
           ) : (
             <div className="space-y-2">
-              {tables.map((table) => (
+              {pageData.tables.map((table) => (
                 <TableListItem key={table.id} table={table} />
               ))}
             </div>

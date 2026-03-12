@@ -1,20 +1,67 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { mockRequest } from "@/shared/api";
+import { apiRequest, getAuthHeaders } from "@/shared/api";
+import type { ApiResult } from "@/shared/api";
 
-import { MOCK_RESTAURANTS } from "../model/mock";
-import type { Restaurant } from "../model/types";
+import type { Restaurant, RestaurantUpsertPayload } from "../model/types";
 
 export const restaurantQueryKeys = {
   all: ["restaurant"] as const,
   byDomain: (domain: string) => [...restaurantQueryKeys.all, domain] as const,
+  me: (accessToken: string | null) =>
+    [...restaurantQueryKeys.all, "me", accessToken] as const,
 };
 
 export const restaurantApi = {
-  getByDomain: (domain: string): Promise<Restaurant | null> =>
-    mockRequest(MOCK_RESTAURANTS[domain] ?? null, {
-      delayMs: 500,
-    }),
+  getByDomain: async (domain: string): Promise<Restaurant | null> => {
+    try {
+      const response = await apiRequest<ApiResult<Restaurant>>(
+        `/api/restaurants/domain/${encodeURIComponent(domain)}`,
+        {
+          method: "GET",
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error &&
+        "status" in error &&
+        error.status === 404
+      ) {
+        return null;
+      }
+
+      throw error;
+    }
+  },
+  getMine: async (accessToken: string): Promise<Restaurant | null> => {
+    const response = await apiRequest<ApiResult<Restaurant | null>>(
+      "/api/restaurants/me",
+      {
+        headers: getAuthHeaders({ accessToken }),
+        method: "GET",
+      }
+    );
+
+    return response.data;
+  },
+  upsertMine: async (
+    accessToken: string,
+    payload: RestaurantUpsertPayload
+  ): Promise<Restaurant> => {
+    const response = await apiRequest<ApiResult<Restaurant>>(
+      "/api/restaurants/me",
+      {
+        body: payload,
+        headers: getAuthHeaders({ accessToken }),
+        method: "PUT",
+      }
+    );
+
+    return response.data;
+  },
 };
 
 export const useRestaurantByDomain = (domain: string) =>
@@ -23,3 +70,29 @@ export const useRestaurantByDomain = (domain: string) =>
     queryFn: () => restaurantApi.getByDomain(domain),
     queryKey: restaurantQueryKeys.byDomain(domain),
   });
+
+export const useMyRestaurantQuery = (
+  accessToken: string | null,
+  enabled = true
+) =>
+  useQuery({
+    enabled: enabled && Boolean(accessToken),
+    queryFn: () => restaurantApi.getMine(accessToken ?? ""),
+    queryKey: restaurantQueryKeys.me(accessToken),
+  });
+
+export const useUpsertMyRestaurantMutation = (accessToken: string | null) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: RestaurantUpsertPayload) =>
+      restaurantApi.upsertMine(accessToken ?? "", payload),
+    onSuccess: (restaurant) => {
+      queryClient.setQueryData(restaurantQueryKeys.me(accessToken), restaurant);
+      queryClient.setQueryData(
+        restaurantQueryKeys.byDomain(restaurant.domain),
+        restaurant
+      );
+    },
+  });
+};

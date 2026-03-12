@@ -8,6 +8,7 @@
     "check-types": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:seed-admin-demo": "python3 prisma/scripts/seed_admin_sample_data.py",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

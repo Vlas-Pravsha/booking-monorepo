@@ -1,9 +1,11 @@
 "use client";
 
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, RefreshCw, Search } from "lucide-react";
 import * as React from "react";
 
+import { useAppSelector } from "@/app/store/hooks";
 import { useCustomersQuery } from "@/entities/customer";
+import { selectAuthSession } from "@/features/auth/session";
 import { surfaceClassNames } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -17,6 +19,10 @@ import {
 import { Input } from "@/shared/ui/input";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 import { SurfaceCard } from "@/shared/ui/surface-card";
+import {
+  MissingRestaurantState,
+  SampleDataNotice,
+} from "@/views/admin/shared/ui/data-state-cards";
 
 import {
   filterCustomers,
@@ -27,55 +33,96 @@ import { CustomerRow } from "./components/customer-row";
 import { CustomersStats } from "./components/customers-stats";
 import { TagFilterItem } from "./components/tag-filter-item";
 
-export function AdminCustomersPage() {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [tagFilter, setTagFilter] = React.useState<string>("all");
-  const { data: customers = [] } = useCustomersQuery();
+const EMPTY_CUSTOMERS: never[] = [];
 
+function useCustomerPageData(
+  accessToken: string | null,
+  searchQuery: string,
+  tagFilter: string
+) {
+  const customersQuery = useCustomersQuery(accessToken);
+  const customers = customersQuery.data?.customers ?? EMPTY_CUSTOMERS;
+  const restaurant = customersQuery.data?.restaurant ?? null;
   const allTags = React.useMemo(
     () => getAllCustomerTags(customers),
     [customers]
   );
-
   const filteredCustomers = React.useMemo(
     () => filterCustomers(customers, searchQuery, tagFilter),
     [customers, searchQuery, tagFilter]
   );
-
   const stats = React.useMemo(() => getCustomerStats(customers), [customers]);
+
+  return { allTags, customersQuery, filteredCustomers, restaurant, stats };
+}
+
+export function AdminCustomersPage() {
+  const session = useAppSelector(selectAuthSession);
+  const accessToken = session?.accessToken ?? null;
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [tagFilter, setTagFilter] = React.useState<string>("all");
+  const pageData = useCustomerPageData(accessToken, searchQuery, tagFilter);
+
+  if (pageData.customersQuery.isLoading) {
+    return (
+      <DashboardShell>
+        <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-10 text-sm text-muted-foreground shadow-xl">
+          Завантажуємо клієнтську базу...
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  if (!pageData.restaurant) {
+    return (
+      <DashboardShell>
+        <MissingRestaurantState />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
       <PageHeader
         eyebrow="База гостей"
         title="Клієнти"
-        subtitle="База гостей з сегментацією, історією візитів і швидким доступом до цінних контактів."
+        subtitle="Клієнтська база формується з реальних бронювань і персональних карток гостей."
         insights={[
           {
             label: "Всього клієнтів",
             tone: "primary",
-            value: `${stats.total} у базі`,
+            value: `${pageData.stats.total} у базі`,
           },
           {
             label: "VIP сегмент",
             tone: "warning",
-            value: `${stats.vip} постійних гостей`,
+            value: `${pageData.stats.vip} постійних гостей`,
           },
           {
             label: "Нові за місяць",
             tone: "success",
-            value: `+${stats.newThisMonth} нових контактів`,
+            value: `+${pageData.stats.newThisMonth} нових контактів`,
           },
         ]}
         action={
-          <Button className={surfaceClassNames.actionButton}>
-            <Plus className="h-4 w-4" />
-            Додати клієнта
+          <Button
+            className={surfaceClassNames.actionButton}
+            onClick={() => {
+              pageData.customersQuery.refetch();
+            }}
+            disabled={pageData.customersQuery.isFetching}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Оновити базу
           </Button>
         }
       />
 
-      <CustomersStats stats={stats} />
+      {pageData.customersQuery.data?.hasSampleData ? (
+        <SampleDataNotice />
+      ) : null}
+
+      <CustomersStats stats={pageData.stats} />
 
       <SurfaceCard>
         <CardHeader className="pb-4">
@@ -112,7 +159,7 @@ export function AdminCustomersPage() {
                   <DropdownMenuItem onClick={() => setTagFilter("all")}>
                     Всі теги
                   </DropdownMenuItem>
-                  {allTags.map((tag) => (
+                  {pageData.allTags.map((tag) => (
                     <TagFilterItem
                       key={tag}
                       tag={tag}
@@ -127,9 +174,15 @@ export function AdminCustomersPage() {
 
         <CardContent>
           <div className="space-y-2">
-            {filteredCustomers.map((customer) => (
-              <CustomerRow key={customer.id} customer={customer} />
-            ))}
+            {pageData.filteredCustomers.length > 0 ? (
+              pageData.filteredCustomers.map((customer) => (
+                <CustomerRow key={customer.id} customer={customer} />
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/70 bg-background/65 px-6 py-12 text-center text-sm text-muted-foreground">
+                Клієнтів за поточним фільтром не знайдено.
+              </div>
+            )}
           </div>
         </CardContent>
       </SurfaceCard>

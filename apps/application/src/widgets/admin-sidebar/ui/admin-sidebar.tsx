@@ -9,10 +9,17 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import type { ComponentType } from "react";
+import { toast } from "sonner";
 
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import {
+  clearSession,
+  selectAuthSession,
+  useLogoutMutation,
+} from "@/features/auth/session";
 import { cn } from "@/shared/lib/utils";
 
 interface NavItem {
@@ -94,12 +101,32 @@ export interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ className }: AdminSidebarProps) {
+  const dispatch = useAppDispatch();
   const pathname = usePathname();
+  const router = useRouter();
+  const session = useAppSelector(selectAuthSession);
+  const logoutMutation = useLogoutMutation();
+
+  const handleLogout = () => {
+    if (!session?.refreshToken) {
+      dispatch(clearSession());
+      router.replace("/login");
+      return;
+    }
+
+    logoutMutation.mutate(session.refreshToken, {
+      onSettled: () => {
+        dispatch(clearSession());
+        toast.success("Сесію завершено");
+        router.replace("/login");
+      },
+    });
+  };
 
   return (
     <aside
       className={cn(
-        "flex h-full w-full flex-col bg-card/60 backdrop-blur-xl px-4 py-6 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] border-r border-border/60",
+        "flex h-full w-full flex-col border-r border-border/60 bg-card/60 px-4 py-6 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] backdrop-blur-xl",
         className
       )}
     >
@@ -130,6 +157,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
       <div className="mt-auto px-1 pb-4 pt-4">
         <button
           type="button"
+          onClick={handleLogout}
           className="group flex w-full items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
         >
           <LogOut className="h-5 w-5" />
