@@ -41,7 +41,9 @@ export function LoginPage() {
 
         <Container className="relative">
           <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
-            <LoginForm />
+            <React.Suspense fallback={<div className="w-full max-w-md" />}>
+              <LoginForm />
+            </React.Suspense>
             <Benefits />
           </div>
         </Container>

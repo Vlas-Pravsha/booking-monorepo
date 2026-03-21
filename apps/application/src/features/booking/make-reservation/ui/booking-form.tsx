@@ -12,7 +12,11 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import type { UseFormSetValue } from "react-hook-form";
+import type {
+  FieldPath,
+  FieldPathValue,
+  UseFormSetValue,
+} from "react-hook-form";
 import { toast } from "sonner";
 
 import { cn } from "@/shared/lib/utils";
@@ -89,10 +93,10 @@ function getStepIndicatorBadgeClass(
   return "border-white/10 bg-transparent text-white/45";
 }
 
-function setBookingFormValue<TField extends keyof BookingFormData>(
+function setBookingFormValue<TField extends FieldPath<BookingFormData>>(
   setValue: UseFormSetValue<BookingFormData>,
   field: TField,
-  value: BookingFormData[TField]
+  value: FieldPathValue<BookingFormData, TField>
 ) {
   setValue(field, value, bookingFormValueOptions);
 }
