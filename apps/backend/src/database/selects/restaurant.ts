@@ -80,3 +80,7 @@ export const restaurantPublicSelect = {
   updatedAt: true,
   workHours: true,
 } satisfies Prisma.RestaurantSelect;
+
+export type RestaurantPublicRecord = Prisma.RestaurantGetPayload<{
+  select: typeof restaurantPublicSelect;
+}>;

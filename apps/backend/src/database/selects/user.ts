@@ -11,3 +11,7 @@ export const userAuthorizationSelect = {
   status: true,
   updatedAt: true,
 } satisfies Prisma.UserSelect;
+
+export type UserAuthorizationRecord = Prisma.UserGetPayload<{
+  select: typeof userAuthorizationSelect;
+}>;

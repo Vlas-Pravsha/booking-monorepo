@@ -6,6 +6,7 @@
     "build": "tsup src/server.ts --format esm --clean",
     "start": "node dist/server.js",
     "check-types": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

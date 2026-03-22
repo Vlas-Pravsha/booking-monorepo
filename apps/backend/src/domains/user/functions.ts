@@ -1,48 +1,22 @@
-import { randomUUID } from "node:crypto";
-
 import type { LoginInput, RegisterInput } from "../../contracts/zod/auth";
 import { ApiError } from "../../core/api-error";
-import { prisma } from "../../database/client";
 import { hashPassword, verifyPassword } from "../../lib/auth/password";
 import { hashToken } from "../../lib/auth/token-hash";
-import {
-  issueAccessToken,
-  issueRefreshToken,
-  verifyRefreshToken,
-} from "../../lib/auth/tokens";
+import { verifyRefreshToken } from "../../lib/auth/tokens";
 import type { RequestMeta } from "../../lib/http/request-meta";
+import { toPublicUser } from "./mappers";
 import {
   findSessionById,
   findUserByEmailForAuth,
   findUserByIdForAuth,
-} from "./reads";
+} from "./read";
+import type { AuthUser } from "./read";
 import {
-  createSession,
-  createUser,
-  revokeSession,
-  rotateSession,
-  touchLastLogin,
-} from "./writes";
-
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
-
-type AuthUser = NonNullable<Awaited<ReturnType<typeof findUserByIdForAuth>>>;
-
-const createSessionExpiry = (): Date => {
-  const expiresAt = Date.now() + DAY_IN_MS * 30;
-  return new Date(expiresAt);
-};
-
-const toPublicUser = (user: AuthUser) => ({
-  createdAt: user.createdAt,
-  email: user.email,
-  firstName: user.firstName,
-  id: user.id,
-  lastLoginAt: user.lastLoginAt,
-  lastName: user.lastName,
-  status: user.status,
-  updatedAt: user.updatedAt,
-});
+  createAuthUser,
+  createSessionForUser,
+  revokeSessionByRefreshTokenId,
+  rotateSessionTokens,
+} from "./write";
 
 const requireActiveUser = (user: AuthUser): void => {
   if (user.status !== "ACTIVE") {
@@ -53,7 +27,7 @@ const requireActiveUser = (user: AuthUser): void => {
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
 const ensureEmailAvailable = async (normalizedEmail: string): Promise<void> => {
-  const existingUser = await findUserByEmailForAuth(prisma, normalizedEmail);
+  const existingUser = await findUserByEmailForAuth(normalizedEmail);
 
   if (existingUser) {
     throw ApiError.conflict("User with this email already exists");
@@ -64,7 +38,7 @@ const requireAuthUserById = async (
   userId: string,
   error: ApiError
 ): Promise<AuthUser> => {
-  const authUser = await findUserByIdForAuth(prisma, userId);
+  const authUser = await findUserByIdForAuth(userId);
 
   if (!authUser) {
     throw error;
@@ -75,7 +49,7 @@ const requireAuthUserById = async (
 
 const authenticateUser = async (input: LoginInput): Promise<AuthUser> => {
   const normalizedEmail = normalizeEmail(input.email);
-  const authUser = await findUserByEmailForAuth(prisma, normalizedEmail);
+  const authUser = await findUserByEmailForAuth(normalizedEmail);
 
   if (!authUser) {
     throw ApiError.unauthorized("Invalid credentials");
@@ -95,42 +69,9 @@ const authenticateUser = async (input: LoginInput): Promise<AuthUser> => {
   return authUser;
 };
 
-const createSessionForUser = async (authUser: AuthUser, meta: RequestMeta) => {
-  const sessionId = randomUUID();
-
-  const refreshToken = await issueRefreshToken({
-    sessionId,
-    userId: authUser.id,
-  });
-
-  const accessToken = await issueAccessToken({
-    email: authUser.email,
-    sessionId,
-    userId: authUser.id,
-  });
-
-  await createSession(prisma, {
-    expiresAt: createSessionExpiry(),
-    id: sessionId,
-    ipAddress: meta.ipAddress,
-    refreshTokenHash: hashToken(refreshToken),
-    userAgent: meta.userAgent,
-    userId: authUser.id,
-  });
-
-  await touchLastLogin(prisma, authUser.id);
-
-  return {
-    accessToken,
-    refreshToken,
-  };
-};
-
-type SessionRecord = NonNullable<Awaited<ReturnType<typeof findSessionById>>>;
-
 const validateRefreshSession = async (refreshToken: string) => {
   const refreshPayload = await verifyRefreshToken(refreshToken);
-  const session = await findSessionById(prisma, refreshPayload.sessionId);
+  const session = await findSessionById(refreshPayload.sessionId);
 
   if (!session || session.userId !== refreshPayload.userId) {
     throw ApiError.unauthorized("Invalid session");
@@ -147,54 +88,18 @@ const validateRefreshSession = async (refreshToken: string) => {
   return { refreshPayload, session };
 };
 
-const rotateSessionTokens = async (
-  session: SessionRecord,
-  authUser: AuthUser,
-  meta: RequestMeta
-) => {
-  const nextRefreshToken = await issueRefreshToken({
-    sessionId: session.id,
-    userId: authUser.id,
-  });
-
-  const nextAccessToken = await issueAccessToken({
-    email: authUser.email,
-    sessionId: session.id,
-    userId: authUser.id,
-  });
-
-  await rotateSession(prisma, {
-    expiresAt: createSessionExpiry(),
-    id: session.id,
-    ipAddress: meta.ipAddress,
-    refreshTokenHash: hashToken(nextRefreshToken),
-    userAgent: meta.userAgent,
-  });
-
-  return {
-    nextAccessToken,
-    nextRefreshToken,
-  };
-};
-
 export const registerUser = async (input: RegisterInput, meta: RequestMeta) => {
   const normalizedEmail = normalizeEmail(input.email);
 
   await ensureEmailAvailable(normalizedEmail);
 
   const passwordHash = await hashPassword(input.password);
-
-  const createdUser = await createUser(prisma, {
+  const authUser = await createAuthUser({
     email: normalizedEmail,
-    firstName: input.firstName,
-    lastName: input.lastName,
+    firstName: input.firstName ?? null,
+    lastName: input.lastName ?? null,
     passwordHash,
   });
-
-  const authUser = await requireAuthUserById(
-    createdUser.id,
-    ApiError.internal("Failed to load created user")
-  );
 
   const { accessToken, refreshToken } = await createSessionForUser(
     authUser,
@@ -254,14 +159,14 @@ export const logoutWithRefreshToken = async (
 ): Promise<void> => {
   try {
     const refreshPayload = await verifyRefreshToken(refreshToken);
-    await revokeSession(prisma, refreshPayload.sessionId);
+    await revokeSessionByRefreshTokenId(refreshPayload.sessionId);
   } catch {
     // Logout must be idempotent for clients.
   }
 };
 
 export const getCurrentUser = async (userId: string) => {
-  const authUser = await findUserByIdForAuth(prisma, userId);
+  const authUser = await findUserByIdForAuth(userId);
 
   if (!authUser) {
     throw ApiError.notFound("User not found");
