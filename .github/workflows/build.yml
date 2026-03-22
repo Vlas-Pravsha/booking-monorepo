@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
 
     steps:
       - name: Checkout repository
