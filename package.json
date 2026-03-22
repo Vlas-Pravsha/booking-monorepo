@@ -6,7 +6,6 @@
     "dev": "turbo run dev",
     "check": "ultracite check",
     "check-types": "turbo run check-types",
-    "type-check": "turbo run check-types",
     "fix": "ultracite fix",
     "up": "pnpm dlx taze major -I -r",
     "react-doctor": "npx -y react-doctor@latest .",
