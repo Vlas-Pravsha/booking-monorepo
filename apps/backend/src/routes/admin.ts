@@ -25,8 +25,9 @@ export const adminRoutes = new Hono<{
 adminRoutes.use("*", authenticate);
 
 adminRoutes.get("/bookings", async (c) => {
+  const prisma = c.get("prisma");
   const auth = c.get("auth");
-  const result = await getAdminBookings(auth.userId);
+  const result = await getAdminBookings(prisma, auth.userId);
 
   return c.json({
     data: result,
@@ -38,10 +39,16 @@ adminRoutes.patch(
   zValidator("param", entityIdParamsSchema),
   zValidator("json", bookingStatusUpdateInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const auth = c.get("auth");
     const { id } = c.req.valid("param");
     const payload = c.req.valid("json");
-    const result = await updateAdminBookingStatus(auth.userId, id, payload);
+    const result = await updateAdminBookingStatus(
+      prisma,
+      auth.userId,
+      id,
+      payload
+    );
 
     return c.json({
       data: result,
@@ -50,8 +57,9 @@ adminRoutes.patch(
 );
 
 adminRoutes.get("/customers", async (c) => {
+  const prisma = c.get("prisma");
   const auth = c.get("auth");
-  const result = await getAdminCustomers(auth.userId);
+  const result = await getAdminCustomers(prisma, auth.userId);
 
   return c.json({
     data: result,
@@ -63,10 +71,11 @@ adminRoutes.patch(
   zValidator("param", entityIdParamsSchema),
   zValidator("json", customerUpdateInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const auth = c.get("auth");
     const { id } = c.req.valid("param");
     const payload = c.req.valid("json");
-    const result = await updateAdminCustomer(auth.userId, id, payload);
+    const result = await updateAdminCustomer(prisma, auth.userId, id, payload);
 
     return c.json({
       data: result,
@@ -75,8 +84,9 @@ adminRoutes.patch(
 );
 
 adminRoutes.get("/tables", async (c) => {
+  const prisma = c.get("prisma");
   const auth = c.get("auth");
-  const result = await getAdminTables(auth.userId);
+  const result = await getAdminTables(prisma, auth.userId);
 
   return c.json({
     data: result,
@@ -88,10 +98,12 @@ adminRoutes.patch(
   zValidator("param", entityIdParamsSchema),
   zValidator("json", tableStatusOverrideUpdateInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const auth = c.get("auth");
     const { id } = c.req.valid("param");
     const payload = c.req.valid("json");
     const result = await updateAdminTableStatusOverride(
+      prisma,
       auth.userId,
       id,
       payload

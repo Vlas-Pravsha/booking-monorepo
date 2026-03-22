@@ -4,7 +4,7 @@ import type {
   TableStatusOverrideUpdateInput,
 } from "../../contracts";
 import { ApiError } from "../../core/api-error";
-import { prisma } from "../../database/client";
+import type { AppPrismaClient } from "../../core/types";
 import { mapBooking, mapCustomer, mapTable } from "./mappers";
 import {
   adminBookingSelect,
@@ -20,6 +20,7 @@ import {
 } from "./utils";
 
 const findRestaurantForOwner = (
+  prisma: AppPrismaClient,
   ownerId: string
 ): Promise<RestaurantSummary | null> =>
   prisma.restaurant.findUnique({
@@ -30,9 +31,10 @@ const findRestaurantForOwner = (
   });
 
 const requireRestaurantForOwner = async (
+  prisma: AppPrismaClient,
   ownerId: string
 ): Promise<RestaurantSummary> => {
-  const restaurant = await findRestaurantForOwner(ownerId);
+  const restaurant = await findRestaurantForOwner(prisma, ownerId);
 
   if (!restaurant) {
     throw ApiError.notFound("Restaurant not found");
@@ -41,8 +43,11 @@ const requireRestaurantForOwner = async (
   return restaurant;
 };
 
-export const getAdminBookings = async (ownerId: string) => {
-  const restaurant = await findRestaurantForOwner(ownerId);
+export const getAdminBookings = async (
+  prisma: AppPrismaClient,
+  ownerId: string
+) => {
+  const restaurant = await findRestaurantForOwner(prisma, ownerId);
 
   if (!restaurant) {
     return {
@@ -70,11 +75,12 @@ export const getAdminBookings = async (ownerId: string) => {
 };
 
 export const updateAdminBookingStatus = async (
+  prisma: AppPrismaClient,
   ownerId: string,
   bookingId: string,
   input: BookingStatusUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(ownerId);
+  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
   const result = await prisma.booking.updateMany({
     data: {
       status: input.status,
@@ -95,8 +101,11 @@ export const updateAdminBookingStatus = async (
   };
 };
 
-export const getAdminCustomers = async (ownerId: string) => {
-  const restaurant = await findRestaurantForOwner(ownerId);
+export const getAdminCustomers = async (
+  prisma: AppPrismaClient,
+  ownerId: string
+) => {
+  const restaurant = await findRestaurantForOwner(prisma, ownerId);
 
   if (!restaurant) {
     return {
@@ -122,11 +131,12 @@ export const getAdminCustomers = async (ownerId: string) => {
 };
 
 export const updateAdminCustomer = async (
+  prisma: AppPrismaClient,
   ownerId: string,
   customerId: string,
   input: CustomerUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(ownerId);
+  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
   const result = await prisma.customer.updateMany({
     data: {
       updatedAt: new Date(),
@@ -147,8 +157,11 @@ export const updateAdminCustomer = async (
   };
 };
 
-export const getAdminTables = async (ownerId: string) => {
-  const restaurant = await findRestaurantForOwner(ownerId);
+export const getAdminTables = async (
+  prisma: AppPrismaClient,
+  ownerId: string
+) => {
+  const restaurant = await findRestaurantForOwner(prisma, ownerId);
 
   if (!restaurant) {
     return {
@@ -177,11 +190,12 @@ export const getAdminTables = async (ownerId: string) => {
 };
 
 export const updateAdminTableStatusOverride = async (
+  prisma: AppPrismaClient,
   ownerId: string,
   tableId: string,
   input: TableStatusOverrideUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(ownerId);
+  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
   const statusOverride = input.status === "maintenance" ? "maintenance" : null;
   const result = await prisma.restaurantTable.updateMany({
     data: {

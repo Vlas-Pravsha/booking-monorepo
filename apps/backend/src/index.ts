@@ -6,6 +6,7 @@ import { errorHandler } from "./core/middlewares/error-handler";
 import { requestIdMiddleware } from "./core/middlewares/request-id";
 import { requestLoggerMiddleware } from "./core/middlewares/request-logger";
 import type { RequestContextVariables } from "./core/types";
+import { withPrisma } from "./lib/prisma";
 import { apiRoutes } from "./routes";
 
 const app = new Hono<{
@@ -14,6 +15,7 @@ const app = new Hono<{
 
 app.use("*", requestIdMiddleware);
 app.use("*", requestLoggerMiddleware);
+app.use("*", withPrisma);
 app.use("*", secureHeaders());
 app.use(
   "*",

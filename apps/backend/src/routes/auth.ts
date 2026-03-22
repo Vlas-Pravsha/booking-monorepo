@@ -25,9 +25,10 @@ authRoutes.post(
   "/register",
   zValidator("json", registerInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const payload = c.req.valid("json");
     const meta = readRequestMeta(c);
-    const result = await registerUser(payload, meta);
+    const result = await registerUser(prisma, payload, meta);
 
     return c.json(
       {
@@ -39,9 +40,10 @@ authRoutes.post(
 );
 
 authRoutes.post("/login", zValidator("json", loginInputSchema), async (c) => {
+  const prisma = c.get("prisma");
   const payload = c.req.valid("json");
   const meta = readRequestMeta(c);
-  const result = await loginUser(payload, meta);
+  const result = await loginUser(prisma, payload, meta);
 
   return c.json({
     data: result,
@@ -52,9 +54,10 @@ authRoutes.post(
   "/refresh",
   zValidator("json", refreshTokenInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const payload = c.req.valid("json");
     const meta = readRequestMeta(c);
-    const result = await refreshSession(payload.refreshToken, meta);
+    const result = await refreshSession(prisma, payload.refreshToken, meta);
 
     return c.json({
       data: result,
@@ -66,9 +69,10 @@ authRoutes.post(
   "/logout",
   zValidator("json", refreshTokenInputSchema),
   async (c) => {
+    const prisma = c.get("prisma");
     const payload = c.req.valid("json");
 
-    await logoutWithRefreshToken(payload.refreshToken);
+    await logoutWithRefreshToken(prisma, payload.refreshToken);
 
     return c.json({
       data: {
@@ -79,8 +83,9 @@ authRoutes.post(
 );
 
 authRoutes.get("/me", authenticate, async (c) => {
+  const prisma = c.get("prisma");
   const auth = c.get("auth");
-  const result = await getCurrentUser(auth.userId);
+  const result = await getCurrentUser(prisma, auth.userId);
 
   return c.json({
     data: result,

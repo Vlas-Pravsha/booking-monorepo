@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { prisma } from "../../database/client";
+import type { AppPrismaClient } from "../../core/types";
 import { userAuthorizationSelect } from "../../database/selects/user";
 import { hashToken } from "../../lib/auth/token-hash";
 import { issueAccessToken, issueRefreshToken } from "../../lib/auth/tokens";
@@ -15,12 +15,13 @@ const createSessionExpiry = (): Date => {
 };
 
 export const createAuthUser = (input: {
+  prisma: AppPrismaClient;
   email: string;
   firstName: string | null;
   lastName: string | null;
   passwordHash: string;
 }): Promise<AuthUser> =>
-  prisma.user.create({
+  input.prisma.user.create({
     data: {
       email: input.email,
       firstName: input.firstName,
@@ -31,6 +32,7 @@ export const createAuthUser = (input: {
   });
 
 export const createSessionForUser = async (
+  prisma: AppPrismaClient,
   authUser: AuthUser,
   meta: RequestMeta
 ) => {
@@ -74,6 +76,7 @@ export const createSessionForUser = async (
 };
 
 export const rotateSessionTokens = async (
+  prisma: AppPrismaClient,
   session: { id: string },
   authUser: AuthUser,
   meta: RequestMeta
@@ -109,6 +112,7 @@ export const rotateSessionTokens = async (
 };
 
 export const revokeSessionByRefreshTokenId = async (
+  prisma: AppPrismaClient,
   sessionId: string
 ): Promise<void> => {
   await prisma.authSession.updateMany({

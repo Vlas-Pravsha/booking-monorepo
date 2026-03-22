@@ -10,6 +10,6 @@
     "outDir": "./dist",
     "verbatimModuleSyntax": true
   },
-  "include": ["src/**/*.ts", "prisma/prisma.config.ts"],
+  "include": ["src/**/*.ts", "prisma.config.ts", "prisma/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

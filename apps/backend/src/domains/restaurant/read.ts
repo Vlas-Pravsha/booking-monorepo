@@ -1,9 +1,12 @@
-import { prisma } from "../../database/client";
+import type { AppPrismaClient } from "../../core/types";
 import { restaurantPublicSelect } from "../../database/selects/restaurant";
 
 export type { RestaurantPublicRecord } from "../../database/selects/restaurant";
 
-export const findRestaurantByDomain = (domain: string) =>
+export const findRestaurantByDomain = (
+  prisma: AppPrismaClient,
+  domain: string
+) =>
   prisma.restaurant.findUnique({
     select: restaurantPublicSelect,
     where: {
@@ -11,7 +14,10 @@ export const findRestaurantByDomain = (domain: string) =>
     },
   });
 
-export const findRestaurantByOwnerId = (ownerId: string) =>
+export const findRestaurantByOwnerId = (
+  prisma: AppPrismaClient,
+  ownerId: string
+) =>
   prisma.restaurant.findUnique({
     select: restaurantPublicSelect,
     where: {
@@ -19,7 +25,10 @@ export const findRestaurantByOwnerId = (ownerId: string) =>
     },
   });
 
-export const findRestaurantByDomainForOwnerCheck = (domain: string) =>
+export const findRestaurantByDomainForOwnerCheck = (
+  prisma: AppPrismaClient,
+  domain: string
+) =>
   prisma.restaurant.findUnique({
     select: {
       domain: true,

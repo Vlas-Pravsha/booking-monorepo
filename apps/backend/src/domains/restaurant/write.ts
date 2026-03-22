@@ -1,9 +1,8 @@
-import type { Prisma } from "@prisma/client";
-
 import type { RestaurantUpsertInput } from "../../contracts/zod/restaurant";
 import { ApiError } from "../../core/api-error";
-import { prisma } from "../../database/client";
+import type { AppPrismaClient } from "../../core/types";
 import { restaurantPublicSelect } from "../../database/selects/restaurant";
+import type { Prisma } from "../../generated/prisma/client.js";
 import { findRestaurantByDomainForOwnerCheck } from "./read";
 import type { RestaurantPublicRecord } from "./read";
 import { normalizeDomain } from "./utils";
@@ -135,6 +134,7 @@ const replaceRestaurantRelations = async (
 };
 
 export const upsertRestaurantForOwner = async (
+  prisma: AppPrismaClient,
   ownerId: string,
   input: RestaurantUpsertInput
 ): Promise<RestaurantPublicRecord> => {
@@ -145,7 +145,7 @@ export const upsertRestaurantForOwner = async (
   }
 
   const existingRestaurantWithDomain =
-    await findRestaurantByDomainForOwnerCheck(normalizedDomain);
+    await findRestaurantByDomainForOwnerCheck(prisma, normalizedDomain);
 
   if (
     existingRestaurantWithDomain &&
