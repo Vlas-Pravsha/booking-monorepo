@@ -5,11 +5,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsup src/server.ts --format esm --clean",
     "start": "node dist/server.js",
-    "precheck-types": "prisma generate",
     "check-types": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed-admin-demo": "python3 prisma/scripts/seed_admin_sample_data.py",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
