@@ -4,6 +4,8 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { useAppSelector } from "@/app/store/hooks";
+import { selectCurrentUser } from "@/features/auth/session";
 import { semanticToneStyles } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -83,6 +85,11 @@ function FloatingBadge({
 }
 
 export function LandingCTA() {
+  const currentUser = useAppSelector(selectCurrentUser);
+  const primaryCta = currentUser
+    ? { href: "/onboarding", label: "Продовжити онбординг" }
+    : { href: "/register", label: "Спробувати безкоштовно" };
+
   return (
     <section className="relative overflow-hidden py-24 sm:py-36 lg:py-44">
       <AnimatedShapes />
@@ -130,8 +137,8 @@ export function LandingCTA() {
               className="group h-14 px-10 text-lg font-bold shadow-2xl shadow-primary/25 transition-all hover:scale-105 hover:shadow-primary/40"
               asChild
             >
-              <Link href="/register">
-                Спробувати безкоштовно
+              <Link href={primaryCta.href}>
+                {primaryCta.label}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

@@ -3,6 +3,7 @@
 import { ArrowRight, Check } from "lucide-react";
 import * as React from "react";
 
+import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -12,7 +13,15 @@ import { Label } from "@/shared/ui/label";
 import { useSendContactRequest } from "../api/use-send-contact-request";
 
 export function ContactForm() {
-  const { isPending, isSuccess, mutate, reset } = useSendContactRequest();
+  const { error, isPending, isSuccess, mutate, reset } =
+    useSendContactRequest();
+  let submitError: string | null = null;
+
+  if (isApiError(error)) {
+    submitError = "Не вдалося надіслати повідомлення. Спробуйте ще раз.";
+  } else if (error) {
+    submitError = "Сталася помилка. Спробуйте ще раз.";
+  }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -113,6 +122,12 @@ export function ContactForm() {
             </>
           )}
         </Button>
+
+        {submitError ? (
+          <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
+            {submitError}
+          </div>
+        ) : null}
 
         <p className="text-center text-xs text-muted-foreground">
           Натискаючи &quot;Надіслати&quot;, ви погоджуєтесь з обробкою

@@ -19,7 +19,7 @@ const accessSecret = encodeSecret(env.JWT_ACCESS_SECRET);
 const refreshSecret = encodeSecret(env.JWT_REFRESH_SECRET);
 
 const accessTokenClaimsSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   sid: z.string().min(1),
   sub: z.string().min(1),
 });

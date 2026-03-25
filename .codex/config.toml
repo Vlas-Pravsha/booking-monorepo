@@ -1,0 +1,41 @@
+model = "gpt-5.4"
+review_model = "gpt-5.4"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "high"
+model_reasoning_summary = "auto"
+model_verbosity = "medium"
+project_doc_max_bytes = 65536
+project_doc_fallback_filenames = ["GEMINI.md"]
+
+[sandbox_workspace_write]
+network_access = false
+
+[features]
+unified_exec = true
+multi_agent = true
+enable_request_compression = true
+skill_mcp_dependency_install = true
+
+[profiles.review]
+model = "gpt-5.4"
+review_model = "gpt-5.4"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+model_reasoning_summary = "auto"
+model_verbosity = "medium"
+
+[profiles.quick]
+model = "gpt-5.4"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "low"
+plan_mode_reasoning_effort = "medium"
+model_reasoning_summary = "auto"
+model_verbosity = "low"

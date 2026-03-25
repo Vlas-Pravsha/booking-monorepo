@@ -13,6 +13,7 @@
     "import/no-relative-parent-imports": "off",
     "promise/prefer-await-to-then": "off",
     "react/no-array-index-key": "off",
-    "max-statements": "off"
+    "max-statements": "off",
+    "promise/param-names": "off"
   }
 }

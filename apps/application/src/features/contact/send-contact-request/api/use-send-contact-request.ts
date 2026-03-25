@@ -2,7 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 
-import { mockRequest } from "@/shared/api";
+import { apiRequest } from "@/shared/api";
+import type { ApiResult } from "@/shared/api";
 
 export interface ContactRequestPayload {
   email: string;
@@ -13,17 +14,15 @@ export interface ContactRequestPayload {
 
 export const contactRequestApi = {
   send: (
-    _payload: ContactRequestPayload
+    payload: ContactRequestPayload
   ): Promise<{ success: true; submittedAt: string }> =>
-    mockRequest(
+    apiRequest<ApiResult<{ success: true; submittedAt: string }>>(
+      "/api/public/contact-requests",
       {
-        submittedAt: new Date().toISOString(),
-        success: true as const,
-      },
-      {
-        delayMs: 1500,
+        body: payload,
+        method: "POST",
       }
-    ),
+    ).then((response) => response.data),
 };
 
 export const useSendContactRequest = () =>

@@ -2,105 +2,29 @@
 
 import { ExternalLink, Save, Sparkles } from "lucide-react";
 import Link from "next/link";
-import * as React from "react";
-import { toast } from "sonner";
 
-import { useAppSelector } from "@/app/store/hooks";
 import {
-  applyRestaurantDraftPatch,
-  createRestaurantDraft,
   RestaurantIdentitySection,
   RestaurantOperationsSection,
   RestaurantSiteContentSection,
-  toRestaurantUpsertPayload,
-  useMyRestaurantQuery,
-  useUpsertMyRestaurantMutation,
 } from "@/entities/restaurant";
-import type { RestaurantUpsertPayload } from "@/entities/restaurant";
-import { selectAuthSession } from "@/features/auth/session";
-import { isApiError } from "@/shared/api";
 import { surfaceClassNames } from "@/shared/config";
 import { buildTenantSiteUrl } from "@/shared/lib/tenant";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
+import { AdminPageLoadingState } from "@/views/admin/shared";
 
-const useRestaurantSettingsForm = (accessToken: string | null) => {
-  const [formData, setFormData] = React.useState<RestaurantUpsertPayload>(
-    createRestaurantDraft()
-  );
-  const [isInitialized, setIsInitialized] = React.useState(false);
-  const { data: restaurant, isLoading } = useMyRestaurantQuery(
-    accessToken,
-    Boolean(accessToken)
-  );
-
-  React.useEffect(() => {
-    if (isLoading || isInitialized) {
-      return;
-    }
-
-    setFormData(
-      restaurant
-        ? toRestaurantUpsertPayload(restaurant)
-        : createRestaurantDraft()
-    );
-    setIsInitialized(true);
-  }, [isInitialized, isLoading, restaurant]);
-
-  const updateFormData = React.useCallback(
-    (patch: Partial<RestaurantUpsertPayload>) => {
-      setFormData((previousState) =>
-        applyRestaurantDraftPatch(previousState, patch)
-      );
-    },
-    []
-  );
-
-  return {
-    formData,
-    isInitialized,
-    setFormData,
-    updateFormData,
-  };
-};
+import { useAdminSettingsPage } from "../model/use-admin-settings-page";
 
 export function AdminSettingsPage() {
-  const session = useAppSelector(selectAuthSession);
-  const settingsForm = useRestaurantSettingsForm(session?.accessToken ?? null);
-  const saveMutation = useUpsertMyRestaurantMutation(
-    session?.accessToken ?? null
-  );
-  const handleFormChange = settingsForm.updateFormData;
-  const enabledSectionsCount = [
-    settingsForm.formData.showGallery,
-    settingsForm.formData.showMenu,
-    settingsForm.formData.showReviews,
-  ].filter(Boolean).length;
+  const settingsPage = useAdminSettingsPage();
 
-  const handleSave = () => {
-    saveMutation.mutate(settingsForm.formData, {
-      onError: (error) => {
-        toast.error(
-          isApiError(error)
-            ? error.message
-            : "Не вдалося зберегти налаштування. Спробуйте ще раз."
-        );
-      },
-      onSuccess: (savedRestaurant) => {
-        settingsForm.setFormData(toRestaurantUpsertPayload(savedRestaurant));
-        toast.success("Налаштування збережено");
-      },
-    });
-  };
-
-  if (!settingsForm.isInitialized) {
+  if (!settingsPage.isInitialized) {
     return (
       <DashboardShell>
         <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-5 text-sm text-muted-foreground shadow-xl">
-            Завантажуємо налаштування ресторану...
-          </div>
+          <AdminPageLoadingState message="Завантажуємо налаштування ресторану..." />
         </div>
       </DashboardShell>
     );
@@ -116,27 +40,27 @@ export function AdminSettingsPage() {
           {
             label: "Домен",
             tone: "primary",
-            value: settingsForm.formData.domain
-              ? `${settingsForm.formData.domain}.table-reserve.com`
+            value: settingsPage.formData.domain
+              ? `${settingsPage.formData.domain}.table-reserve.com`
               : "ще не задано",
           },
           {
             label: "Вітрина",
             tone: "success",
-            value: `${enabledSectionsCount}/3 секції увімкнено`,
+            value: `${settingsPage.enabledSectionsCount}/3 секції увімкнено`,
           },
           {
             label: "Контент",
             tone: "info",
-            value: `${settingsForm.formData.menuHighlights.length + settingsForm.formData.gallery.length + settingsForm.formData.reviews.length} елементів`,
+            value: `${settingsPage.contentItemsCount} елементів`,
           },
         ]}
         action={
           <div className="flex items-center gap-3">
-            {settingsForm.formData.domain ? (
+            {settingsPage.formData.domain ? (
               <Button variant="outline" asChild>
                 <Link
-                  href={buildTenantSiteUrl(settingsForm.formData.domain)}
+                  href={buildTenantSiteUrl(settingsPage.formData.domain)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -147,11 +71,11 @@ export function AdminSettingsPage() {
             ) : null}
             <Button
               className={surfaceClassNames.actionButton}
-              onClick={handleSave}
-              disabled={saveMutation.isPending}
+              onClick={settingsPage.handleSave}
+              disabled={settingsPage.isSaving}
             >
               <Save className="h-4 w-4" />
-              {saveMutation.isPending ? "Зберігаємо..." : "Зберегти зміни"}
+              {settingsPage.isSaving ? "Зберігаємо..." : "Зберегти зміни"}
             </Button>
           </div>
         }
@@ -181,16 +105,16 @@ export function AdminSettingsPage() {
         </Card>
 
         <RestaurantIdentitySection
-          value={settingsForm.formData}
-          onChange={handleFormChange}
+          value={settingsPage.formData}
+          onChange={settingsPage.handleFormChange}
         />
         <RestaurantSiteContentSection
-          value={settingsForm.formData}
-          onChange={handleFormChange}
+          value={settingsPage.formData}
+          onChange={settingsPage.handleFormChange}
         />
         <RestaurantOperationsSection
-          value={settingsForm.formData}
-          onChange={handleFormChange}
+          value={settingsPage.formData}
+          onChange={settingsPage.handleFormChange}
         />
       </div>
     </DashboardShell>

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { RequestContextVariables } from "../core/types";
 import { adminRoutes } from "./admin";
 import { authRoutes } from "./auth";
+import { publicRoutes } from "./public";
 import { restaurantRoutes } from "./restaurants";
 
 export const apiRoutes = new Hono<{
@@ -11,4 +12,5 @@ export const apiRoutes = new Hono<{
 
 apiRoutes.route("/admin", adminRoutes);
 apiRoutes.route("/auth", authRoutes);
+apiRoutes.route("/public", publicRoutes);
 apiRoutes.route("/restaurants", restaurantRoutes);

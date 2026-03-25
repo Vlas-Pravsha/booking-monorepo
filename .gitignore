@@ -30,3 +30,5 @@ lerna-debug.log*
 
 /src/generated/prisma
 .turbo
+/code_review.md
+/DEVELOPMENT_TASKS.md

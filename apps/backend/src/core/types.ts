@@ -1,4 +1,4 @@
-import type { PrismaClient } from "../generated/prisma/client.js";
+import type { Prisma, PrismaClient } from "../generated/prisma/client.js";
 
 export interface AuthIdentity {
   userId: string;
@@ -7,6 +7,7 @@ export interface AuthIdentity {
 }
 
 export type AppPrismaClient = PrismaClient;
+export type PrismaExecutor = PrismaClient | Prisma.TransactionClient;
 
 export interface RequestContextVariables {
   auth: AuthIdentity;

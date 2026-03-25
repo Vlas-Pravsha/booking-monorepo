@@ -6,29 +6,23 @@ import type {
 import { ApiError } from "../../core/api-error";
 import type { AppPrismaClient } from "../../core/types";
 import { mapBooking, mapCustomer, mapTable } from "./mappers";
+import type { RestaurantSummary } from "./read";
 import {
-  adminBookingSelect,
-  adminCustomerSelect,
-  adminTableSelect,
-  restaurantSummarySelect,
-} from "./selects";
-import type { RestaurantSummary } from "./selects";
+  findAdminBookingsByRestaurantId,
+  findAdminCustomersByRestaurantId,
+  findAdminTablesByRestaurantId,
+  findRestaurantForOwner,
+} from "./read";
 import {
   hasSampleBooking,
   hasSampleCustomer,
   hasSampleTableBooking,
 } from "./utils";
-
-const findRestaurantForOwner = (
-  prisma: AppPrismaClient,
-  ownerId: string
-): Promise<RestaurantSummary | null> =>
-  prisma.restaurant.findUnique({
-    select: restaurantSummarySelect,
-    where: {
-      ownerId,
-    },
-  });
+import {
+  updateAdminBookingStatusById,
+  updateAdminCustomerById,
+  updateAdminTableStatusOverrideById,
+} from "./write";
 
 const requireRestaurantForOwner = async (
   prisma: AppPrismaClient,
@@ -57,15 +51,7 @@ export const getAdminBookings = async (
     };
   }
 
-  const bookings = await prisma.booking.findMany({
-    orderBy: {
-      startAt: "desc",
-    },
-    select: adminBookingSelect,
-    where: {
-      restaurantId: restaurant.id,
-    },
-  });
+  const bookings = await findAdminBookingsByRestaurantId(prisma, restaurant.id);
 
   return {
     bookings: bookings.map(mapBooking),
@@ -81,16 +67,12 @@ export const updateAdminBookingStatus = async (
   input: BookingStatusUpdateInput
 ) => {
   const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const result = await prisma.booking.updateMany({
-    data: {
-      status: input.status,
-      updatedAt: new Date(),
-    },
-    where: {
-      id: bookingId,
-      restaurantId: restaurant.id,
-    },
-  });
+  const result = await updateAdminBookingStatusById(
+    prisma,
+    restaurant.id,
+    bookingId,
+    input.status
+  );
 
   if (result.count === 0) {
     throw ApiError.notFound("Booking not found");
@@ -115,13 +97,10 @@ export const getAdminCustomers = async (
     };
   }
 
-  const customers = await prisma.customer.findMany({
-    orderBy: [{ vip: "desc" }, { createdAt: "desc" }],
-    select: adminCustomerSelect,
-    where: {
-      restaurantId: restaurant.id,
-    },
-  });
+  const customers = await findAdminCustomersByRestaurantId(
+    prisma,
+    restaurant.id
+  );
 
   return {
     customers: customers.map(mapCustomer),
@@ -137,16 +116,12 @@ export const updateAdminCustomer = async (
   input: CustomerUpdateInput
 ) => {
   const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const result = await prisma.customer.updateMany({
-    data: {
-      updatedAt: new Date(),
-      vip: input.vip,
-    },
-    where: {
-      id: customerId,
-      restaurantId: restaurant.id,
-    },
-  });
+  const result = await updateAdminCustomerById(
+    prisma,
+    restaurant.id,
+    customerId,
+    input.vip
+  );
 
   if (result.count === 0) {
     throw ApiError.notFound("Customer not found");
@@ -171,15 +146,7 @@ export const getAdminTables = async (
     };
   }
 
-  const tables = await prisma.restaurantTable.findMany({
-    orderBy: {
-      position: "asc",
-    },
-    select: adminTableSelect,
-    where: {
-      restaurantId: restaurant.id,
-    },
-  });
+  const tables = await findAdminTablesByRestaurantId(prisma, restaurant.id);
   const now = new Date();
 
   return {
@@ -196,16 +163,12 @@ export const updateAdminTableStatusOverride = async (
   input: TableStatusOverrideUpdateInput
 ) => {
   const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const statusOverride = input.status === "maintenance" ? "maintenance" : null;
-  const result = await prisma.restaurantTable.updateMany({
-    data: {
-      statusOverride,
-    },
-    where: {
-      id: tableId,
-      restaurantId: restaurant.id,
-    },
-  });
+  const result = await updateAdminTableStatusOverrideById(
+    prisma,
+    restaurant.id,
+    tableId,
+    input.status
+  );
 
   if (result.count === 0) {
     throw ApiError.notFound("Table not found");

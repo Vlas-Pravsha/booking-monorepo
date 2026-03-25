@@ -1,51 +1,28 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
-import * as React from "react";
-
-import { useAppSelector } from "@/app/store/hooks";
-import { useTablesQuery } from "@/entities/table";
-import { selectAuthSession } from "@/features/auth/session";
-import { surfaceClassNames } from "@/shared/config";
-import { Button } from "@/shared/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 import { SurfaceCard } from "@/shared/ui/surface-card";
 import {
+  AdminPageLoadingState,
+  AdminRefreshButton,
   MissingRestaurantState,
   SampleDataNotice,
-} from "@/views/admin/shared/ui/data-state-cards";
+} from "@/views/admin/shared";
 
-import { getTableStats } from "../lib/get-table-stats";
-import type { ViewMode } from "../model/types";
+import { useTablesPage } from "../model/use-tables-page";
 import { TableGridItem } from "./components/table-grid-item";
 import { TableListItem } from "./components/table-list-item";
 import { TableViewModeToggle } from "./components/table-view-mode-toggle";
 import { TablesStats } from "./components/tables-stats";
 
-const EMPTY_TABLES: never[] = [];
-
-function useTablesPageData(accessToken: string | null) {
-  const tablesQuery = useTablesQuery(accessToken);
-  const tables = tablesQuery.data?.tables ?? EMPTY_TABLES;
-  const restaurant = tablesQuery.data?.restaurant ?? null;
-  const stats = React.useMemo(() => getTableStats(tables), [tables]);
-
-  return { restaurant, stats, tables, tablesQuery };
-}
-
 export function AdminTablesPage() {
-  const session = useAppSelector(selectAuthSession);
-  const accessToken = session?.accessToken ?? null;
-  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
-  const pageData = useTablesPageData(accessToken);
+  const pageData = useTablesPage();
 
-  if (pageData.tablesQuery.isLoading) {
+  if (pageData.isLoading) {
     return (
       <DashboardShell>
-        <div className="rounded-3xl border border-border/60 bg-card/80 px-6 py-10 text-sm text-muted-foreground shadow-xl">
-          Завантажуємо план залу...
-        </div>
+        <AdminPageLoadingState message="Завантажуємо план залу..." />
       </DashboardShell>
     );
   }
@@ -82,16 +59,11 @@ export function AdminTablesPage() {
           },
         ]}
         action={
-          <Button
-            className={surfaceClassNames.actionButton}
-            onClick={() => {
-              pageData.tablesQuery.refetch();
-            }}
-            disabled={pageData.tablesQuery.isFetching}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Оновити план
-          </Button>
+          <AdminRefreshButton
+            onClick={() => pageData.refreshTables()}
+            disabled={pageData.isRefreshing}
+            label="Оновити план"
+          />
         }
       />
 
@@ -110,15 +82,15 @@ export function AdminTablesPage() {
               </p>
             </div>
             <TableViewModeToggle
-              viewMode={viewMode}
-              onSetGrid={() => setViewMode("grid")}
-              onSetList={() => setViewMode("list")}
+              viewMode={pageData.viewMode}
+              onSetGrid={() => pageData.setViewMode("grid")}
+              onSetList={() => pageData.setViewMode("list")}
             />
           </div>
         </CardHeader>
 
         <CardContent>
-          {viewMode === "grid" ? (
+          {pageData.viewMode === "grid" ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {pageData.tables.map((table) => (
                 <TableGridItem key={table.id} table={table} />

@@ -9,17 +9,18 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String
-  firstName    String?
-  lastName     String?
-  status       String        @default("ACTIVE")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  lastLoginAt  DateTime?
-  sessions     AuthSession[]
-  restaurant   Restaurant?
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  firstName           String?
+  lastName            String?
+  status              String               @default("ACTIVE")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  lastLoginAt         DateTime?
+  sessions            AuthSession[]
+  passwordResetTokens PasswordResetToken[]
+  restaurant          Restaurant?
 }
 
 model AuthSession {
@@ -190,4 +191,31 @@ model Booking {
   @@index([restaurantId, status])
   @@index([customerId, startAt])
   @@index([tableId, startAt])
+}
+
+model MarketingContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  message   String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email, createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }

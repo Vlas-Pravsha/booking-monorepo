@@ -20,7 +20,7 @@ export {
   RestaurantIdentitySection,
   RestaurantOperationsSection,
   RestaurantSiteContentSection,
-} from "./ui/settings-sections";
+} from "./ui/settings-form";
 export type {
   MenuItem,
   Restaurant,

@@ -2,9 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
+  forgotPasswordInputSchema,
   loginInputSchema,
   refreshTokenInputSchema,
   registerInputSchema,
+  resetPasswordInputSchema,
 } from "../contracts/zod/auth";
 import { authenticate } from "../core/middlewares/auth";
 import type { RequestContextVariables } from "../core/types";
@@ -12,8 +14,10 @@ import {
   getCurrentUser,
   loginUser,
   logoutWithRefreshToken,
+  requestPasswordRecovery,
   refreshSession,
   registerUser,
+  resetPasswordRecovery,
 } from "../domains/user/functions";
 import { readRequestMeta } from "../lib/http/request-meta";
 
@@ -30,12 +34,7 @@ authRoutes.post(
     const meta = readRequestMeta(c);
     const result = await registerUser(prisma, payload, meta);
 
-    return c.json(
-      {
-        data: result,
-      },
-      201
-    );
+    return c.json({ data: result }, 201);
   }
 );
 
@@ -59,9 +58,31 @@ authRoutes.post(
     const meta = readRequestMeta(c);
     const result = await refreshSession(prisma, payload.refreshToken, meta);
 
-    return c.json({
-      data: result,
-    });
+    return c.json({ data: result });
+  }
+);
+
+authRoutes.post(
+  "/forgot-password",
+  zValidator("json", forgotPasswordInputSchema),
+  async (c) => {
+    const prisma = c.get("prisma");
+    const payload = c.req.valid("json");
+    const result = await requestPasswordRecovery(prisma, payload);
+
+    return c.json({ data: result });
+  }
+);
+
+authRoutes.post(
+  "/reset-password",
+  zValidator("json", resetPasswordInputSchema),
+  async (c) => {
+    const prisma = c.get("prisma");
+    const payload = c.req.valid("json");
+    const result = await resetPasswordRecovery(prisma, payload);
+
+    return c.json({ data: result });
   }
 );
 
@@ -75,9 +96,7 @@ authRoutes.post(
     await logoutWithRefreshToken(prisma, payload.refreshToken);
 
     return c.json({
-      data: {
-        success: true,
-      },
+      data: { success: true },
     });
   }
 );
@@ -87,7 +106,5 @@ authRoutes.get("/me", authenticate, async (c) => {
   const auth = c.get("auth");
   const result = await getCurrentUser(prisma, auth.userId);
 
-  return c.json({
-    data: result,
-  });
+  return c.json({ data: result });
 });

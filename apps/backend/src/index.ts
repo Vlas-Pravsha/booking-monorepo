@@ -8,6 +8,7 @@ import { requestLoggerMiddleware } from "./core/middlewares/request-logger";
 import type { RequestContextVariables } from "./core/types";
 import { withPrisma } from "./lib/prisma";
 import { apiRoutes } from "./routes";
+import { healthRoutes } from "./routes/health";
 
 const app = new Hono<{
   Variables: RequestContextVariables;
@@ -33,6 +34,7 @@ app.get("/", (c) =>
   })
 );
 
+app.route("/", healthRoutes);
 app.route("/api", apiRoutes);
 
 app.notFound((c) =>

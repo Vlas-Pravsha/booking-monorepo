@@ -1,22 +1,36 @@
-import type { LoginInput, RegisterInput } from "../../contracts/zod/auth";
+import { randomBytes } from "node:crypto";
+
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "../../contracts/zod/auth";
 import { ApiError } from "../../core/api-error";
 import type { AppPrismaClient } from "../../core/types";
 import { hashPassword, verifyPassword } from "../../lib/auth/password";
 import { hashToken } from "../../lib/auth/token-hash";
 import { verifyRefreshToken } from "../../lib/auth/tokens";
+import { env } from "../../lib/env";
 import type { RequestMeta } from "../../lib/http/request-meta";
+import { sendPasswordResetNotification } from "../../lib/notifications/password-reset";
 import { toPublicUser } from "./mappers";
 import {
+  findPasswordResetTokenByHash,
   findSessionById,
   findUserByEmailForAuth,
   findUserByIdForAuth,
 } from "./read";
 import type { AuthUser } from "./read";
 import {
+  createPasswordResetTokenRecord,
   createAuthUser,
   createSessionForUser,
+  invalidateActivePasswordResetTokensForUser,
+  revokeActiveSessionsForUser,
   revokeSessionByRefreshTokenId,
   rotateSessionTokens,
+  updateUserPasswordHash,
 } from "./write";
 
 const requireActiveUser = (user: AuthUser): void => {
@@ -26,6 +40,15 @@ const requireActiveUser = (user: AuthUser): void => {
 };
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
+
+const createPasswordResetExpiry = (): Date =>
+  new Date(Date.now() + env.PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000);
+
+const createPasswordResetUrl = (token: string): string =>
+  new URL(
+    `/reset-password?token=${encodeURIComponent(token)}`,
+    env.APP_BASE_URL
+  ).toString();
 
 const ensureEmailAvailable = async (
   prisma: AppPrismaClient,
@@ -205,5 +228,83 @@ export const getCurrentUser = async (
 
   return {
     user: toPublicUser(authUser),
+  };
+};
+
+export const requestPasswordRecovery = async (
+  prisma: AppPrismaClient,
+  input: ForgotPasswordInput
+) => {
+  const normalizedEmail = normalizeEmail(input.email);
+  const authUser = await findUserByEmailForAuth(prisma, normalizedEmail);
+
+  if (authUser && authUser.status === "ACTIVE") {
+    const rawToken = randomBytes(32).toString("hex");
+    const expiresAt = createPasswordResetExpiry();
+    const requestedAt = new Date();
+
+    await invalidateActivePasswordResetTokensForUser(
+      prisma,
+      authUser.id,
+      requestedAt
+    );
+    await createPasswordResetTokenRecord(prisma, {
+      expiresAt,
+      tokenHash: hashToken(rawToken),
+      userId: authUser.id,
+    });
+    await sendPasswordResetNotification({
+      email: authUser.email,
+      expiresAt,
+      resetUrl: createPasswordResetUrl(rawToken),
+    });
+  }
+
+  return {
+    success: true as const,
+  };
+};
+
+export const resetPasswordRecovery = async (
+  prisma: AppPrismaClient,
+  input: ResetPasswordInput
+) => {
+  const passwordResetToken = await findPasswordResetTokenByHash(
+    prisma,
+    hashToken(input.token)
+  );
+
+  if (
+    !passwordResetToken ||
+    passwordResetToken.usedAt ||
+    passwordResetToken.expiresAt <= new Date() ||
+    passwordResetToken.user.status !== "ACTIVE"
+  ) {
+    throw ApiError.badRequest("Invalid or expired password reset token");
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  const completedAt = new Date();
+
+  await prisma.$transaction(async (transaction) => {
+    await updateUserPasswordHash(
+      transaction,
+      passwordResetToken.userId,
+      passwordHash
+    );
+    await invalidateActivePasswordResetTokensForUser(
+      transaction,
+      passwordResetToken.userId,
+      completedAt
+    );
+    await revokeActiveSessionsForUser(
+      transaction,
+      passwordResetToken.userId,
+      completedAt
+    );
+  });
+
+  return {
+    success: true as const,
   };
 };

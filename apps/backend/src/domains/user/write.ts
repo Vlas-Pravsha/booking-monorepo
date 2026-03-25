@@ -1,21 +1,22 @@
 import { randomUUID } from "node:crypto";
 
-import type { AppPrismaClient } from "../../core/types";
+import type { PrismaExecutor } from "../../core/types";
 import { userAuthorizationSelect } from "../../database/selects/user";
 import { hashToken } from "../../lib/auth/token-hash";
 import { issueAccessToken, issueRefreshToken } from "../../lib/auth/tokens";
+import { env } from "../../lib/env";
 import type { RequestMeta } from "../../lib/http/request-meta";
 import type { AuthUser } from "./read";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 const createSessionExpiry = (): Date => {
-  const expiresAt = Date.now() + DAY_IN_MS * 30;
+  const expiresAt = Date.now() + DAY_IN_MS * env.REFRESH_TOKEN_TTL_DAYS;
   return new Date(expiresAt);
 };
 
 export const createAuthUser = (input: {
-  prisma: AppPrismaClient;
+  prisma: PrismaExecutor;
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -32,7 +33,7 @@ export const createAuthUser = (input: {
   });
 
 export const createSessionForUser = async (
-  prisma: AppPrismaClient,
+  prisma: PrismaExecutor,
   authUser: AuthUser,
   meta: RequestMeta
 ) => {
@@ -76,7 +77,7 @@ export const createSessionForUser = async (
 };
 
 export const rotateSessionTokens = async (
-  prisma: AppPrismaClient,
+  prisma: PrismaExecutor,
   session: { id: string },
   authUser: AuthUser,
   meta: RequestMeta
@@ -112,7 +113,7 @@ export const rotateSessionTokens = async (
 };
 
 export const revokeSessionByRefreshTokenId = async (
-  prisma: AppPrismaClient,
+  prisma: PrismaExecutor,
   sessionId: string
 ): Promise<void> => {
   await prisma.authSession.updateMany({
@@ -125,3 +126,63 @@ export const revokeSessionByRefreshTokenId = async (
     },
   });
 };
+
+export const createPasswordResetTokenRecord = (
+  prisma: PrismaExecutor,
+  input: {
+    expiresAt: Date;
+    tokenHash: string;
+    userId: string;
+  }
+) =>
+  prisma.passwordResetToken.create({
+    data: {
+      expiresAt: input.expiresAt,
+      tokenHash: input.tokenHash,
+      userId: input.userId,
+    },
+  });
+
+export const invalidateActivePasswordResetTokensForUser = (
+  prisma: PrismaExecutor,
+  userId: string,
+  usedAt: Date
+) =>
+  prisma.passwordResetToken.updateMany({
+    data: {
+      usedAt,
+    },
+    where: {
+      usedAt: null,
+      userId,
+    },
+  });
+
+export const revokeActiveSessionsForUser = (
+  prisma: PrismaExecutor,
+  userId: string,
+  revokedAt: Date
+) =>
+  prisma.authSession.updateMany({
+    data: {
+      revokedAt,
+    },
+    where: {
+      revokedAt: null,
+      userId,
+    },
+  });
+
+export const updateUserPasswordHash = (
+  prisma: PrismaExecutor,
+  userId: string,
+  passwordHash: string
+) =>
+  prisma.user.update({
+    data: {
+      passwordHash,
+    },
+    where: {
+      id: userId,
+    },
+  });

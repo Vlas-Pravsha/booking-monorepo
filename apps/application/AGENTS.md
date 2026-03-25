@@ -1,157 +1,180 @@
-# AGENTS.md - Coding Agent Guidelines
+# AGENTS.md - Frontend Guide
 
 ## Project Overview
 
-This is a Next.js 16 SaaS booking system for restaurant table reservations using the T3 Stack. The codebase follows a Feature-Sliced Design architecture pattern.
+`apps/application` is the Next.js 16 frontend for the booking platform. It serves three product surfaces from one codebase:
 
-## Build/Lint/Test Commands
+- marketing site on the root domain
+- admin interface on the admin subdomain
+- tenant booking pages on restaurant subdomains
 
-```bash
-pnpm dev          # Start development server with Turbopack
-pnpm build        # Production build
-pnpm start        # Start production server
-pnpm preview      # Build and start production server
-
-pnpm lint         # Run ESLint
-pnpm lint:fix     # Run ESLint with auto-fix
-pnpm typecheck    # Run TypeScript type checking
-pnpm check        # Run both lint and typecheck
-
-pnpm format:check # Check formatting with Prettier
-pnpm format:write # Format files with Prettier
-```
-
-**No test framework is currently configured.** When tests are added, update this file.
+The frontend follows Feature-Sliced Design and uses a shared REST API client to talk to `apps/backend`.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router) with React 19
-- **Language**: TypeScript 5.8 (strict mode enabled)
-- **Styling**: Tailwind CSS 4 with shadcn/ui components
-- **State**: Redux Toolkit + TanStack React Query
-- **Validation**: Zod schemas with @t3-oss/env-nextjs
-- **Package Manager**: pnpm 9.15.3
-- **Linting**: ESLint 9 with @antfu/eslint-config
-- **Formatting**: Prettier with prettier-plugin-tailwindcss
+- Framework: [Next.js 16 App Router](https://nextjs.org/docs/app)
+- UI: [React 19](https://react.dev/), [Tailwind CSS 4](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/)
+- State: [TanStack Query](https://tanstack.com/query/latest) for server state, [Redux Toolkit](https://redux-toolkit.js.org/) for session/app state
+- Forms and validation: [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/)
+- Motion and polish: [Framer Motion](https://www.framer.com/motion/), `sonner`, `embla-carousel-react`
+- Env validation: [@t3-oss/env-nextjs](https://env.t3.gg/)
 
-## Project Structure
+## Architecture
 
+```text
+Next.js App Router
+  -> proxy.ts rewrites root/admin/tenant domains
+  -> route groups in src/app
+  -> views/widgets/features/entities/shared (FSD)
+  -> shared/api client
+  -> backend REST API
 ```
+
+Current routing model:
+
+- `src/app/(marketing)` - landing pages
+- `src/app/(auth)` - login, register, forgot password
+- `src/app/(admin)` - admin pages mounted behind the admin subdomain rewrite
+- `src/app/[domain]` - tenant-facing restaurant page resolved from subdomain rewrite
+- `src/app/onboarding` - onboarding flow
+
+`src/proxy.ts` is critical. It rewrites:
+
+- `admin.<root-domain>` to `/admin/...`
+- `<tenant>.<root-domain>` to `/<tenant>/...`
+
+If you change routing, account for proxy behavior and tenant helpers in `src/shared/lib/tenant`.
+
+## Source Structure
+
+```text
 src/
-├── app/              # Next.js App Router (layouts, pages, providers, store)
-│   ├── (marketing)/  # Route group for marketing pages
-│   ├── (admin)/      # Route group for admin pages
-│   ├── [domain]/     # Dynamic route for tenant domains
-│   ├── providers/    # React Query & Redux providers
-│   └── store.ts      # Redux store configuration
-├── entities/         # Business domain entities (user, booking, etc.)
-├── features/         # Feature slices (auth, booking flow, etc.)
-├── views/            # Page-level components (composed of widgets/features)
-├── shared/           # Shared utilities, UI components, config
-│   ├── config/       # Environment variables, app config
-│   ├── lib/          # Utilities, hooks
-│   └── ui/           # Reusable UI components (shadcn/ui)
-└── widgets/          # Composite UI blocks (header, footer, etc.)
+  app/
+    (marketing)/
+    (auth)/
+    (admin)/
+    [domain]/
+    onboarding/
+    providers/
+    store/
+    styles/
+  entities/
+    booking/
+    customer/
+    restaurant/
+    table/
+  features/
+    auth/
+    booking/
+    contact/
+  views/
+    admin/
+    auth/
+    marketing/
+    tenant/
+  widgets/
+    admin-sidebar/
+    marketing-header/
+    marketing-footer/
+    tenant-header/
+    tenant-footer/
+    tenant-restaurant/
+  shared/
+    api/
+    config/
+    lib/
+    ui/
 ```
 
-## Code Style Guidelines
+FSD intent in this repo:
 
-### Imports
+- `entities` define domain-shaped client models and entity-level API hooks
+- `features` contain user actions and mutation flows
+- `widgets` compose reusable page sections
+- `views` assemble full screens/pages
+- `shared` holds low-level UI, config, utilities, and the API client
 
-- Use `import type` for type-only imports
-- Order: type imports first, then regular imports
-- Use path alias `@/*` for imports from `src/`:
-  ```typescript
-  import type { ButtonProps } from "@/shared/ui/button";
-  import { cn } from "@/shared/lib/utils";
-  ```
+## API Integration Rules
 
-### Formatting (Prettier)
+1. Use `src/shared/api` for HTTP calls. Do not scatter raw `fetch` calls across the app.
+2. Put reusable query/mutation hooks close to the owning entity or feature.
+3. Keep the backend response envelope intact. Current consumers expect `{ data: ... }`.
+4. Authenticated requests must go through `getAuthHeaders`.
+5. If you turn a mocked flow into a real one, wire the backend endpoint in the same task.
 
-- **No semicolons**
-- **Single quotes** for JS/TS strings
-- **Double quotes** for JSX attributes
-- **Trailing commas** everywhere
-- **2-space indentation**
-- **Print width**: 80 characters
+Current real API-backed areas:
 
-### TypeScript
+- auth session lifecycle
+- owner restaurant read/update
+- admin bookings
+- admin customers
+- admin tables
 
-- Strict mode enabled with `noUncheckedIndexedAccess`
-- Use `verbatimModuleSyntax` for explicit type imports
-- Prefer interfaces for component props
-- Use `React.ReactNode` for children types
-- Export types alongside implementations when needed
+Current mocked areas:
 
-### React Components
+- marketing contact request
+- tenant reservation submit
+- forgot password
 
-- Use function declarations, not arrow functions
-- Add `'use client'` directive at the very top for client components
-- Use named exports (avoid default exports for components)
-- Pattern for component files:
+## Frontend Coding Rules
 
-  ```tsx
-  "use client";
+1. All user-facing copy must be in Ukrainian.
+2. Prefer Server Components by default for route files and layout shells; add `'use client'` only when state, effects, browser APIs, or React Query hooks are needed.
+3. Use function declarations and named exports for components and helpers. Next.js route files can use default exports where the framework requires them.
+4. Use `import type` for type-only imports.
+5. Reuse shared UI primitives from `src/shared/ui` before adding new component variants.
+6. Keep slice boundaries clean. Shared code must not depend on features/views/widgets. Features should not reach into unrelated feature internals.
+7. Preserve the existing `index.ts` re-export pattern at slice boundaries where it already exists.
+8. Use `cn()` and existing layout primitives (`container`, `layout`, `surface-card`, `dashboard-shell`) instead of ad hoc wrappers.
+9. Follow the repo formatter/linter conventions: no semicolons, single quotes in TS, concise comments only when needed.
+10. Do not use Server Actions for product workflows in this app. Use the centralized API client and React Query mutations.
 
-  import type { SomeType } from "library";
-  import { something } from "library";
-  import * as React from "react";
+## State Management Conventions
 
-  import { cn } from "@/shared/lib/utils";
+- TanStack Query owns async server state, cache, and invalidation.
+- Redux currently handles auth/session bootstrapping and app-level client state.
+- Persisted auth data lives under `features/auth/session/model`.
+- After successful mutations, invalidate or update the relevant query keys instead of forcing page reloads.
 
-  export interface ComponentNameProps {
-    prop: string;
-  }
+## Environment And Config
 
-  export function ComponentName({ prop }: ComponentNameProps) {
-    return <div>{prop}</div>;
-  }
-  ```
+Important frontend env vars:
 
-### File Organization
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_ROOT_DOMAIN`
+- `NEXT_PUBLIC_ADMIN_SUBDOMAIN`
 
-- Barrel exports in `index.ts` files for each module:
-  ```typescript
-  export * from "./button";
-  export { HomePage } from "./ui/home-page";
-  ```
-- UI components in `ui/` subdirectory
-- Hooks in `lib/hooks/` subdirectory
-- Config in `config/` subdirectory
+`src/shared/config/env.ts` validates the public env contract. Keep it in sync with usage.
 
-### Naming Conventions
+## Commands
 
-- **Components**: PascalCase (`HomePage`, `Button`)
-- **Files**: kebab-case (`home-page.tsx`, `react-query-provider.tsx`)
-- **Directories**: kebab-case (`admin-dashboard/`)
-- **Hooks**: `use` prefix (`useAppDispatch`, `useAppSelector`)
-- **Constants**: SCREAMING_SNAKE_CASE for true constants
-- **Types/Interfaces**: PascalCase with descriptive names
+From `apps/application`:
 
-### Error Handling
+```bash
+pnpm dev
+pnpm build
+pnpm start
+pnpm preview
+pnpm check-types
+```
 
-- Use Zod for runtime validation
-- Environment variables validated via `@t3-oss/env-nextjs`
-- React Query handles async error states
-- **Note**: Only the centralized API client (`src/shared/api`) should be used for requests. **Server Actions (use server) are forbidden.**
+From the repo root:
 
-### Tailwind CSS
+```bash
+pnpm dev
+pnpm build
+pnpm check
+pnpm check-types
+pnpm fix
+```
 
-- Use Tailwind classes directly in JSX
-- Use `cn()` utility for conditional class merging
-- Follow prettier-plugin-tailwindcss for class ordering
-- shadcn/ui components in `src/shared/ui/`
+## Validation Expectations
 
-## Pre-commit Hooks
+There is no established frontend test suite yet. Before finishing work, run at least:
 
-Husky runs lint-staged on commit:
+```bash
+pnpm --filter booking-system check-types
+pnpm --filter booking-system build
+```
 
-- JS/TS files: Prettier format + ESLint fix
-- JSON/MD/CSS files: Prettier format
-
-## Important Notes
-
-- Run `pnpm check` after making changes to verify code quality
-- Comments in code should be avoided unless explicitly requested
-- Use Ukrainian language for UI text (this is a Ukrainian market product)
-- shadcn/ui components configured with aliases pointing to `src/shared/`
+If your change affects backend contracts, validate the backend too.
