@@ -5,7 +5,10 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "dist/**", "!.next/cache/**"]
+    },
+    "@booking/contracts#build": {
+      "outputs": []
     },
     "lint": {
       "dependsOn": ["^lint"]
