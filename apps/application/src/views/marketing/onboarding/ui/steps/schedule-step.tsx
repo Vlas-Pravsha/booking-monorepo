@@ -1,33 +1,22 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import * as React from "react";
 
-import { RestaurantOperationsSection } from "@/entities/restaurant";
+import { RestaurantOperationsSection } from "@/features/restaurant";
 
-import type { OnboardingData } from "../types";
+import type { OnboardingStepDraftProps } from "../../model/types";
+import { OnboardingStepShell } from "./step-shell";
 
-interface ScheduleStepProps {
-  data: OnboardingData;
-  updateData: (data: Partial<OnboardingData>) => void;
-}
-
-export function ScheduleStep({ data, updateData }: ScheduleStepProps) {
+export function ScheduleStep({ draft, onPatch }: OnboardingStepDraftProps) {
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-          <Clock className="w-8 h-8 text-primary" />
-        </div>
-        <h2 className="text-3xl font-bold mb-2">Налаштування залу</h2>
-        <p className="text-muted-foreground">
-          Визначте час роботи та конфігурацію столів
-        </p>
-      </div>
-
+    <OnboardingStepShell
+      icon={Clock}
+      title="Налаштування залу"
+      description="Визначте час роботи та конфігурацію столів."
+    >
       <div className="mx-auto max-w-4xl">
-        <RestaurantOperationsSection value={data} onChange={updateData} />
+        <RestaurantOperationsSection draft={draft} onPatch={onPatch} />
       </div>
-    </div>
+    </OnboardingStepShell>
   );
 }

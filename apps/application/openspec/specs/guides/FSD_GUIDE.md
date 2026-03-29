@@ -17,7 +17,7 @@
 | ---------- | ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
 | `app`      | Next.js entrypoints і глобальна ініціалізація  | `layout.tsx`, route `page.tsx`, providers, store         | `src/app/layout.tsx`, `src/app/providers/*`                  |
 | `views`    | Повноцінні сторінки або route-level композиції | збірка `widgets`, `features`, `entities` у готовий екран | `src/views/auth/login`, `src/views/tenant/booking`           |
-| `widgets`  | Великі самостійні UI-блоки                     | секції, хедери, сайдбари, композитні блоки               | `src/widgets/tenant-restaurant`, `src/widgets/admin-sidebar` |
+| `widgets`  | Великі самостійні UI-блоки                     | секції, хедери, сайдбари, композитні блоки               | `src/widgets/tenant/restaurant`, `src/widgets/admin/sidebar` |
 | `features` | Дії користувача і завершені сценарії           | форми, mutations, orchestration одного use case          | `src/features/booking/make-reservation`                      |
 | `entities` | Бізнес-сутності                                | типи, читання даних, entity-specific UI, entity rules    | `src/entities/restaurant`, `src/entities/booking`            |
 | `shared`   | Загальні технічні і UI-ресурси                 | дизайн-система, utils, config, transport base            | `src/shared/ui`, `src/shared/lib`, `src/shared/config`       |
@@ -62,6 +62,7 @@ slice-name/
 - `model/` містить типи, schema, client state, pure business rules;
 - `api/` містить доступ до зовнішніх або асинхронних даних для цього slice;
 - `lib/` містить локальні helper-функції, які не підходять у `shared`.
+- вкладені папки всередині сегмента дозволені, якщо вони покращують читабельність, наприклад `ui/components`, `ui/sections`, `ui/steps`.
 
 ## Що беремо з `nextjs-fsd-ddd-example`
 
@@ -352,36 +353,15 @@ src/shared/api/
 | Base client, auth headers, base url | `src/shared/api`                                |
 | ReactQueryProvider, StoreProvider   | `src/app/providers`                             |
 
-## Поточні відхилення, які варто виправити
+## Поточний стан
 
-### `views/tenant/booking`
+На момент цієї ревізії критичних FSD-відхилень у поточному фронтенді не повинно бути:
 
-Зараз `src/views/tenant/booking/ui/restaurant-booking-page.tsx` містить `useQuery`.
+- `views/tenant/booking` споживає готовий entity hook `useRestaurantByDomain` із `entities/restaurant`;
+- `features/contact/send-contact-request` має окремий `api/use-send-contact-request.ts`;
+- typed Redux hooks живуть у `shared/lib/store` без залежності від `app/store`.
 
-Правильніше:
-
-- винести query hook в `src/entities/restaurant/api/use-restaurant-by-domain.ts`;
-- експортувати його через `src/entities/restaurant/index.ts`;
-- у `RestaurantBookingPage` використовувати тільки готовий hook.
-
-### `features/contact/send-contact-request`
-
-Зараз submit side effect живе всередині `ui/contact-form.tsx`.
-
-Правильніше:
-
-- створити `src/features/contact/send-contact-request/api/use-send-contact-request.ts`;
-- винести async submit туди;
-- компонент форми лишити лише для UI, form state і рендеру.
-
-### `shared/lib/hooks/redux.ts`
-
-Зараз `shared` імпортує типи з `app/store`, а це порушує базове правило FSD: `shared` не має залежати від `app`.
-
-Правильніше:
-
-- перенести typed Redux hooks у `src/app/store/hooks.ts` або `src/app/providers/store/hooks.ts`;
-- імпортувати їх у нижчі шари вже з `app`, тільки там, де це справді потрібно.
+Тобто цей гайд варто сприймати як контракт для нових змін, а не як список старих проблем у коді.
 
 ## Приклад цільової структури
 
@@ -394,7 +374,7 @@ src/
 ├── views/
 │   └── tenant/booking/
 ├── widgets/
-│   └── tenant-restaurant/
+│   └── tenant/restaurant/
 ├── features/
 │   ├── booking/make-reservation/
 │   │   ├── api/
@@ -425,6 +405,7 @@ src/
 - `widgets` складають великі блоки, але не роблять raw API calls.
 - `shared` не знає нічого про `app`, `views`, `widgets`, `features`, `entities`.
 - Будь-який slice експортує публічний API через `index.ts`.
+- surface-level barrels на кшталт `widgets/tenant/index.ts` або `views/marketing/index.ts` дозволені як навігаційний public API, якщо вони не приховують порушення шарів.
 
 ## Checklist перед merge
 

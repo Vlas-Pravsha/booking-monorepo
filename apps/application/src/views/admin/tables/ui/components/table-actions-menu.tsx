@@ -3,10 +3,9 @@
 import { MoreHorizontal, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAppSelector } from "@/app/store/hooks";
 import type { Table } from "@/entities/table";
 import { useUpdateTableStatusMutation } from "@/entities/table";
-import { selectAuthSession } from "@/features/auth/session";
+import { useAuthAccessToken } from "@/features/auth/session";
 import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
@@ -22,10 +21,8 @@ interface TableActionsMenuProps {
 }
 
 export function TableActionsMenu({ table }: TableActionsMenuProps) {
-  const session = useAppSelector(selectAuthSession);
-  const updateStatusMutation = useUpdateTableStatusMutation(
-    session?.accessToken ?? null
-  );
+  const accessToken = useAuthAccessToken();
+  const updateStatusMutation = useUpdateTableStatusMutation(accessToken);
   const nextStatus =
     table.status === "maintenance" ? "available" : "maintenance";
 

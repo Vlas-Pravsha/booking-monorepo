@@ -3,10 +3,9 @@
 import { Check, MoreHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAppSelector } from "@/app/store/hooks";
 import type { Booking } from "@/entities/booking";
 import { useUpdateBookingStatusMutation } from "@/entities/booking";
-import { selectAuthSession } from "@/features/auth/session";
+import { useAuthAccessToken } from "@/features/auth/session";
 import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
@@ -26,10 +25,8 @@ export function BookingActionsMenu({
   bookingId,
   status,
 }: BookingActionsMenuProps) {
-  const session = useAppSelector(selectAuthSession);
-  const updateStatusMutation = useUpdateBookingStatusMutation(
-    session?.accessToken ?? null
-  );
+  const accessToken = useAuthAccessToken();
+  const updateStatusMutation = useUpdateBookingStatusMutation(accessToken);
 
   const handleStatusChange = (nextStatus: Booking["status"]) => {
     updateStatusMutation.mutate(

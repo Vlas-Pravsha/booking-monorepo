@@ -12,6 +12,13 @@ const nullableString = (value: string | undefined): string | null => {
   return normalizedValue || null;
 };
 
+const buildReviewDateLabel = () =>
+  new Intl.DateTimeFormat("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date());
+
 const buildRestaurantUpsertData = (
   input: RestaurantUpsertInput,
   normalizedDomain: string
@@ -48,6 +55,18 @@ const replaceRestaurantRelations = async (
   restaurantId: string,
   input: RestaurantUpsertInput
 ) => {
+  const existingMenuHighlights = await tx.restaurantMenuItem.findMany({
+    orderBy: {
+      position: "asc",
+    },
+    select: {
+      image: true,
+    },
+    where: {
+      restaurantId,
+    },
+  });
+
   await tx.restaurantFeature.deleteMany({
     where: {
       restaurantId,
@@ -98,7 +117,7 @@ const replaceRestaurantRelations = async (
     await tx.restaurantMenuItem.createMany({
       data: input.menuHighlights.map((item, position) => ({
         description: item.description,
-        image: nullableString(item.image),
+        image: existingMenuHighlights[position]?.image ?? null,
         name: item.name,
         position,
         price: item.price,
@@ -108,11 +127,13 @@ const replaceRestaurantRelations = async (
   }
 
   if (input.reviews.length > 0) {
+    const dateLabel = buildReviewDateLabel();
+
     await tx.restaurantReview.createMany({
       data: input.reviews.map((review, position) => ({
         author: review.author,
-        avatar: nullableString(review.avatar),
-        date: review.date,
+        avatar: null,
+        date: dateLabel,
         position,
         rating: review.rating,
         restaurantId,

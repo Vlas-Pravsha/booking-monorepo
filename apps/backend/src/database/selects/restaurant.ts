@@ -55,8 +55,6 @@ export const restaurantPublicSelect = {
     },
     select: {
       author: true,
-      avatar: true,
-      date: true,
       id: true,
       rating: true,
       text: true,

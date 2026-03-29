@@ -5,8 +5,8 @@ import * as React from "react";
 import { useBookingsQuery } from "@/entities/booking";
 import { useCustomersQuery } from "@/entities/customer";
 import { useTablesQuery } from "@/entities/table";
+import { useAuthAccessToken } from "@/features/auth/session";
 import { getLocalDateKey } from "@/shared/lib/formatters";
-import { useAdminAccessToken } from "@/views/admin/shared";
 
 import {
   buildDashboardStatItems,
@@ -18,7 +18,7 @@ const EMPTY_CUSTOMERS: never[] = [];
 const EMPTY_TABLES: never[] = [];
 
 export function useDashboardPage() {
-  const accessToken = useAdminAccessToken();
+  const accessToken = useAuthAccessToken();
   const bookingsQuery = useBookingsQuery(accessToken);
   const customersQuery = useCustomersQuery(accessToken);
   const tablesQuery = useTablesQuery(accessToken);

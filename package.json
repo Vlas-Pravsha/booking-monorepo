@@ -5,6 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "check": "ultracite check",
+    "check-architecture": "turbo run check-architecture",
     "check-types": "turbo run check-types",
     "fix": "ultracite fix",
     "up": "pnpm dlx taze major -I -r",

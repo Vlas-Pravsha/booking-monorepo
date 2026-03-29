@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  bookingListResponseSchema,
+  bookingStatusUpdateInputSchema,
+  bookingStatusUpdateResultSchema,
+} from "@booking/contracts/admin";
+import type { BookingStatusUpdateResult } from "@booking/contracts/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest, getAuthHeaders } from "@/shared/api";
@@ -23,25 +29,25 @@ export const bookingApi = {
       }
     );
 
-    return response.data;
+    return bookingListResponseSchema.parse(response.data);
   },
   updateStatus: async (
     accessToken: string,
     bookingId: string,
     status: Booking["status"]
-  ): Promise<{ success: boolean }> => {
-    const response = await apiRequest<ApiResult<{ success: boolean }>>(
+  ): Promise<BookingStatusUpdateResult> => {
+    const response = await apiRequest<ApiResult<BookingStatusUpdateResult>>(
       `/api/admin/bookings/${encodeURIComponent(bookingId)}/status`,
       {
-        body: {
+        body: bookingStatusUpdateInputSchema.parse({
           status,
-        },
+        }),
         headers: getAuthHeaders({ accessToken }),
         method: "PATCH",
       }
     );
 
-    return response.data;
+    return bookingStatusUpdateResultSchema.parse(response.data);
   },
 };
 

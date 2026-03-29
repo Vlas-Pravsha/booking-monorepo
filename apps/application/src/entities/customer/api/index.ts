@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  customerListResponseSchema,
+  customerUpdateInputSchema,
+  customerUpdateResultSchema,
+} from "@booking/contracts/admin";
+import type { CustomerUpdateResult } from "@booking/contracts/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest, getAuthHeaders } from "@/shared/api";
@@ -23,25 +29,25 @@ export const customerApi = {
       }
     );
 
-    return response.data;
+    return customerListResponseSchema.parse(response.data);
   },
   updateVip: async (
     accessToken: string,
     customerId: string,
     vip: boolean
-  ): Promise<{ success: boolean }> => {
-    const response = await apiRequest<ApiResult<{ success: boolean }>>(
+  ): Promise<CustomerUpdateResult> => {
+    const response = await apiRequest<ApiResult<CustomerUpdateResult>>(
       `/api/admin/customers/${encodeURIComponent(customerId)}`,
       {
-        body: {
+        body: customerUpdateInputSchema.parse({
           vip,
-        },
+        }),
         headers: getAuthHeaders({ accessToken }),
         method: "PATCH",
       }
     );
 
-    return response.data;
+    return customerUpdateResultSchema.parse(response.data);
   },
 };
 

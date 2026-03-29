@@ -1,12 +1,5 @@
-import { AuthGuard } from "@/features/auth/session";
-import { OnboardingFlow } from "@/views/marketing/onboarding";
+import { OnboardingPage } from "@/views/marketing";
 
 export default function Page() {
-  return (
-    <AuthGuard mode="protected">
-      <div className="selection:bg-primary selection:text-primary-foreground flex min-h-screen flex-col">
-        <OnboardingFlow />
-      </div>
-    </AuthGuard>
-  );
+  return <OnboardingPage />;
 }

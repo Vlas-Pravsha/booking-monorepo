@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src/server.ts --format esm --clean",
+    "build": "tsup --config tsup.config.ts",
     "start": "node dist/server.js",
     "check-types": "tsc --noEmit",
     "type-check": "tsc --noEmit",
@@ -12,6 +12,7 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@booking/contracts": "workspace:*",
     "@hono/node-server": "^1.19.6",
     "@hono/zod-validator": "^0.7.4",
     "@node-rs/argon2": "^2.0.2",

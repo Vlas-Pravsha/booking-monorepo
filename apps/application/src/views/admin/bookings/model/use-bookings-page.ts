@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useBookingsQuery } from "@/entities/booking";
-import { useAdminAccessToken } from "@/views/admin/shared";
+import { useAuthAccessToken } from "@/features/auth/session";
 
 import { filterBookings } from "../lib/filter-bookings";
 import type { BookingFilterValue } from "./constants";
@@ -11,7 +11,7 @@ import type { BookingFilterValue } from "./constants";
 const EMPTY_BOOKINGS: never[] = [];
 
 export function useBookingsPage() {
-  const accessToken = useAdminAccessToken();
+  const accessToken = useAuthAccessToken();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] =
     React.useState<BookingFilterValue>("all");

@@ -4,18 +4,18 @@ import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 
 import { surfaceClassNames } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import { CardContent, CardHeader } from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
-import { DashboardShell, PageHeader } from "@/shared/ui/layout";
-import { SurfaceCard } from "@/shared/ui/surface-card";
 import {
   AdminPageLoadingState,
   AdminRefreshButton,
   AdminTableEmptyState,
   MissingRestaurantState,
   SampleDataNotice,
-} from "@/views/admin/shared";
+} from "@/shared/ui/admin";
+import { Button } from "@/shared/ui/button";
+import { CardContent, CardHeader } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+import { DashboardShell, PageHeader } from "@/shared/ui/layout";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 
 import { useBookingsPage } from "../model/use-bookings-page";
 import { BookingStatusFilter } from "./components/booking-status-filter";

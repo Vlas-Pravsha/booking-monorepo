@@ -3,10 +3,9 @@
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAppSelector } from "@/app/store/hooks";
 import type { Customer } from "@/entities/customer";
 import { useUpdateCustomerVipMutation } from "@/entities/customer";
-import { selectAuthSession } from "@/features/auth/session";
+import { useAuthAccessToken } from "@/features/auth/session";
 import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
@@ -22,10 +21,8 @@ interface CustomerActionsMenuProps {
 }
 
 export function CustomerActionsMenu({ customer }: CustomerActionsMenuProps) {
-  const session = useAppSelector(selectAuthSession);
-  const updateVipMutation = useUpdateCustomerVipMutation(
-    session?.accessToken ?? null
-  );
+  const accessToken = useAuthAccessToken();
+  const updateVipMutation = useUpdateCustomerVipMutation(accessToken);
 
   const handleToggleVip = () => {
     updateVipMutation.mutate(

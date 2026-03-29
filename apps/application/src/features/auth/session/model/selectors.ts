@@ -1,12 +1,12 @@
-import type { RootState } from "@/app/store";
+import type { AppState } from "@/shared/lib/store";
 
-export const selectAuthState = (state: RootState) => state.auth;
+export const selectAuthState = (state: AppState) => state.auth;
 
-export const selectAuthSession = (state: RootState) => state.auth.session;
+export const selectAuthSession = (state: AppState) => state.auth.session;
 
-export const selectCurrentUser = (state: RootState) => state.auth.session?.user;
+export const selectCurrentUser = (state: AppState) => state.auth.session?.user;
 
-export const selectIsAuthenticated = (state: RootState) =>
+export const selectIsAuthenticated = (state: AppState) =>
   Boolean(state.auth.session?.accessToken);
 
-export const selectIsAuthHydrated = (state: RootState) => state.auth.isHydrated;
+export const selectIsAuthHydrated = (state: AppState) => state.auth.isHydrated;

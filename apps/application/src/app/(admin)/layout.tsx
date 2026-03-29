@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 import { AuthGuard } from "@/features/auth/session";
-import { AdminFooter } from "@/widgets/admin-footer";
-import { AdminSidebar } from "@/widgets/admin-sidebar";
+import { AdminFooter, AdminSidebar } from "@/widgets/admin";
 
 export const metadata: Metadata = {
   title: "Адмін-панель | TableReserve",

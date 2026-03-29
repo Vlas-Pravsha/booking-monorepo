@@ -1,29 +1,27 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { useAppDispatch } from "@/app/store/hooks";
-import { setSession } from "@/features/auth/session";
 import { isApiError } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
 
+import type { AuthSession } from "../api";
 import { useRegister } from "../api";
-
-const REGISTER_BENEFITS = [
-  "Моментальний доступ до адмін-панелі",
-  "Реєстрація без участі менеджера",
-  "Безкоштовний старт і гнучке масштабування",
-  "Професійний онбординг одразу після входу",
-];
+import {
+  AuthCardFooter,
+  AuthFormCard,
+  AuthFormError,
+  AuthFormIntro,
+  AuthPasswordField,
+  AuthTextField,
+} from "./auth-form-parts";
+import { RegisterBenefitsList } from "./register-benefits-list";
 
 const registerSchema = z
   .object({
@@ -43,11 +41,12 @@ const registerSchema = z
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function RegisterForm() {
-  const dispatch = useAppDispatch();
+interface RegisterFormProps {
+  onAuthenticated?: (session: AuthSession) => void;
+}
+
+export function RegisterForm({ onAuthenticated }: RegisterFormProps) {
   const router = useRouter();
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const { isPending, mutate } = useRegister();
   const form = useForm<RegisterFormValues>({
     defaultValues: {
@@ -93,7 +92,7 @@ export function RegisterForm() {
           });
         },
         onSuccess: (session) => {
-          dispatch(setSession(session));
+          onAuthenticated?.(session);
           toast.success("Акаунт створено");
           router.replace("/onboarding");
         },
@@ -103,142 +102,72 @@ export function RegisterForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-          <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-          <span className="text-sm font-medium text-primary">
-            Безкоштовна реєстрація
-          </span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-          Створіть аккаунт
-        </h1>
-        <p className="text-muted-foreground">
-          Створіть персональний доступ і переходьте до налаштування системи
-        </p>
-      </div>
+      <AuthFormIntro
+        icon={Sparkles}
+        badgeLabel="Безкоштовна реєстрація"
+        title="Створіть аккаунт"
+        description="Створіть персональний доступ і переходьте до налаштування системи"
+      />
 
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-2xl shadow-primary/10">
+      <AuthFormCard>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Ім&apos;я</Label>
-              <Input
-                id="firstName"
-                placeholder="Анна"
-                autoComplete="given-name"
-                {...form.register("firstName")}
-              />
-              <p className="min-h-5 text-xs text-danger">
-                {form.formState.errors.firstName?.message}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Прізвище</Label>
-              <Input
-                id="lastName"
-                placeholder="Коваленко"
-                autoComplete="family-name"
-                {...form.register("lastName")}
-              />
-              <p className="min-h-5 text-xs text-danger">
-                {form.formState.errors.lastName?.message}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="info@restaurant.com"
-              autoComplete="email"
-              {...form.register("email")}
+            <AuthTextField
+              id="firstName"
+              label="Ім'я"
+              placeholder="Анна"
+              autoComplete="given-name"
+              error={form.formState.errors.firstName?.message}
+              {...form.register("firstName")}
             />
-            <p className="min-h-5 text-xs text-danger">
-              {form.formState.errors.email?.message}
-            </p>
+            <AuthTextField
+              id="lastName"
+              label="Прізвище"
+              placeholder="Коваленко"
+              autoComplete="family-name"
+              error={form.formState.errors.lastName?.message}
+              {...form.register("lastName")}
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Пароль</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Мінімум 8 символів"
-                autoComplete="new-password"
-                className="pr-10"
-                {...form.register("password")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={
-                  showPassword ? "Приховати пароль" : "Показати пароль"
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            <p className="min-h-5 text-xs text-danger">
-              {form.formState.errors.password?.message}
-            </p>
-          </div>
+          <AuthTextField
+            id="email"
+            type="email"
+            label="Email"
+            placeholder="info@restaurant.com"
+            autoComplete="email"
+            error={form.formState.errors.email?.message}
+            {...form.register("email")}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Підтвердження пароля</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Повторіть пароль"
-                autoComplete="new-password"
-                className="pr-10"
-                {...form.register("confirmPassword")}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((value) => !value)}
-                aria-label={
-                  showConfirmPassword
-                    ? "Приховати підтвердження пароля"
-                    : "Показати підтвердження пароля"
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            <p className="min-h-5 text-xs text-danger">
-              {form.formState.errors.confirmPassword?.message}
-            </p>
-          </div>
+          <AuthPasswordField
+            id="password"
+            label="Пароль"
+            placeholder="Мінімум 8 символів"
+            autoComplete="new-password"
+            error={form.formState.errors.password?.message}
+            {...form.register("password")}
+          />
 
-          {submitError ? (
-            <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
-              {submitError}
-            </div>
-          ) : null}
+          <AuthPasswordField
+            id="confirmPassword"
+            label="Підтвердження пароля"
+            placeholder="Повторіть пароль"
+            autoComplete="new-password"
+            error={form.formState.errors.confirmPassword?.message}
+            {...form.register("confirmPassword")}
+          />
+
+          <AuthFormError message={submitError} />
 
           <Button
             type="submit"
-            className="w-full h-12 text-base font-semibold"
+            className="h-12 w-full text-base font-semibold"
             disabled={isPending}
           >
             {isPending ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                 Створюємо...
               </span>
             ) : (
@@ -249,7 +178,7 @@ export function RegisterForm() {
             )}
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground">
             Реєструючись, ви погоджуєтесь з{" "}
             <Link href="/terms" className="text-primary hover:underline">
               Умовами використання
@@ -261,30 +190,14 @@ export function RegisterForm() {
           </p>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-border/50">
-          <p className="text-sm text-muted-foreground mb-4">Вже є аккаунт?</p>
-          <Button variant="outline" className="w-full" asChild>
-            <Link href="/login">
-              Увійти в систему
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
+        <AuthCardFooter
+          prompt="Вже є аккаунт?"
+          actionHref="/login"
+          actionLabel="Увійти в систему"
+        />
+      </AuthFormCard>
 
-      <div className="mt-8 space-y-3">
-        {REGISTER_BENEFITS.map((benefit) => (
-          <div
-            key={benefit}
-            className="flex items-center gap-3 text-sm text-muted-foreground"
-          >
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Check className="h-3.5 w-3.5 text-primary" />
-            </div>
-            {benefit}
-          </div>
-        ))}
-      </div>
+      <RegisterBenefitsList />
     </div>
   );
 }

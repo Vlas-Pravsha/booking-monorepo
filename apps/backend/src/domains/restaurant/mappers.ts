@@ -34,8 +34,6 @@ const toMenuHighlight = (item: MenuHighlightRecord) => ({
 
 const toReview = (review: ReviewRecord) => ({
   author: review.author,
-  avatar: toOptionalString(review.avatar),
-  date: review.date,
   id: review.id,
   rating: review.rating,
   text: review.text,

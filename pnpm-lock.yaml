@@ -32,6 +32,9 @@ importers:
 
   apps/application:
     dependencies:
+      '@booking/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
@@ -180,6 +183,9 @@ importers:
 
   apps/backend:
     dependencies:
+      '@booking/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@hono/node-server':
         specifier: ^1.19.6
         version: 1.19.10(hono@4.12.5)
@@ -232,6 +238,16 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/contracts:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
 packages:
 

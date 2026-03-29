@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useTablesQuery } from "@/entities/table";
-import { useAdminAccessToken } from "@/views/admin/shared";
+import { useAuthAccessToken } from "@/features/auth/session";
 
 import { getTableStats } from "../lib/get-table-stats";
 import type { ViewMode } from "./types";
@@ -11,7 +11,7 @@ import type { ViewMode } from "./types";
 const EMPTY_TABLES: never[] = [];
 
 export function useTablesPage() {
-  const accessToken = useAdminAccessToken();
+  const accessToken = useAuthAccessToken();
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
   const tablesQuery = useTablesQuery(accessToken);
   const tables = tablesQuery.data?.tables ?? EMPTY_TABLES;

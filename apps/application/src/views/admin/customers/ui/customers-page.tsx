@@ -4,6 +4,13 @@ import { Filter, Search } from "lucide-react";
 
 import { surfaceClassNames } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
+import {
+  AdminInlineEmptyState,
+  AdminPageLoadingState,
+  AdminRefreshButton,
+  MissingRestaurantState,
+  SampleDataNotice,
+} from "@/shared/ui/admin";
 import { Button } from "@/shared/ui/button";
 import { CardContent, CardHeader } from "@/shared/ui/card";
 import {
@@ -15,13 +22,6 @@ import {
 import { Input } from "@/shared/ui/input";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
 import { SurfaceCard } from "@/shared/ui/surface-card";
-import {
-  AdminInlineEmptyState,
-  AdminPageLoadingState,
-  AdminRefreshButton,
-  MissingRestaurantState,
-  SampleDataNotice,
-} from "@/views/admin/shared";
 
 import { useCustomersPage } from "../model/use-customers-page";
 import { CustomerRow } from "./components/customer-row";

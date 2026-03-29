@@ -1,7 +1,6 @@
 "use client";
 
 import { useRestaurantByDomain } from "@/entities/restaurant";
-import { TenantFooter } from "@/widgets/tenant-footer";
 import {
   RestaurantAbout,
   RestaurantBookingInfo,
@@ -12,7 +11,8 @@ import {
   RestaurantMenu,
   RestaurantNavigation,
   RestaurantReviews,
-} from "@/widgets/tenant-restaurant";
+  TenantFooter,
+} from "@/widgets/tenant";
 
 import { RestaurantNotFound } from "./restaurant-not-found";
 import { RestaurantSkeleton } from "./restaurant-skeleton";

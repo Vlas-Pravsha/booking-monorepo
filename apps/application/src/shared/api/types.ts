@@ -1,6 +1,4 @@
-export interface ApiResult<T> {
-  data: T;
-}
+export type { ApiResult } from "@booking/contracts/shared";
 
 export interface PaginatedResult<T> {
   items: T[];

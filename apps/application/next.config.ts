@@ -11,6 +11,7 @@ const config: NextConfig = {
       },
     ],
   },
+  transpilePackages: ["@booking/contracts"],
 };
 
 export default config;

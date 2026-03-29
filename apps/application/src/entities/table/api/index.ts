@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  tableListResponseSchema,
+  tableStatusOverrideUpdateInputSchema,
+  tableStatusOverrideUpdateResultSchema,
+} from "@booking/contracts/admin";
+import type { TableStatusOverrideUpdateResult } from "@booking/contracts/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest, getAuthHeaders } from "@/shared/api";
@@ -23,25 +29,24 @@ export const tableApi = {
       }
     );
 
-    return response.data;
+    return tableListResponseSchema.parse(response.data);
   },
   updateStatus: async (
     accessToken: string,
     tableId: string,
     status: "available" | "maintenance"
-  ): Promise<{ success: boolean }> => {
-    const response = await apiRequest<ApiResult<{ success: boolean }>>(
-      `/api/admin/tables/${encodeURIComponent(tableId)}/status`,
-      {
-        body: {
-          status,
-        },
-        headers: getAuthHeaders({ accessToken }),
-        method: "PATCH",
-      }
-    );
+  ): Promise<TableStatusOverrideUpdateResult> => {
+    const response = await apiRequest<
+      ApiResult<TableStatusOverrideUpdateResult>
+    >(`/api/admin/tables/${encodeURIComponent(tableId)}/status`, {
+      body: tableStatusOverrideUpdateInputSchema.parse({
+        status,
+      }),
+      headers: getAuthHeaders({ accessToken }),
+      method: "PATCH",
+    });
 
-    return response.data;
+    return tableStatusOverrideUpdateResultSchema.parse(response.data);
   },
 };
 

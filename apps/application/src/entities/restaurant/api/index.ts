@@ -1,3 +1,7 @@
+import {
+  restaurantSchema,
+  restaurantUpsertInputSchema,
+} from "@booking/contracts/restaurant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiRequest, getAuthHeaders } from "@/shared/api";
@@ -22,7 +26,7 @@ export const restaurantApi = {
         }
       );
 
-      return response.data;
+      return restaurantSchema.parse(response.data);
     } catch (error) {
       if (
         typeof error === "object" &&
@@ -45,7 +49,9 @@ export const restaurantApi = {
       }
     );
 
-    return response.data;
+    return response.data === null
+      ? null
+      : restaurantSchema.parse(response.data);
   },
   upsertMine: async (
     accessToken: string,
@@ -54,13 +60,13 @@ export const restaurantApi = {
     const response = await apiRequest<ApiResult<Restaurant>>(
       "/api/restaurants/me",
       {
-        body: payload,
+        body: restaurantUpsertInputSchema.parse(payload),
         headers: getAuthHeaders({ accessToken }),
         method: "PUT",
       }
     );
 
-    return response.data;
+    return restaurantSchema.parse(response.data);
   },
 };
 

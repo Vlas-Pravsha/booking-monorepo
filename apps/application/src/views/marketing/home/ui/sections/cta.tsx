@@ -4,8 +4,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { useAppSelector } from "@/app/store/hooks";
-import { selectCurrentUser } from "@/features/auth/session";
+import { useAuthCurrentUser } from "@/features/auth/session";
 import { semanticToneStyles } from "@/shared/config";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -85,9 +84,9 @@ function FloatingBadge({
 }
 
 export function LandingCTA() {
-  const currentUser = useAppSelector(selectCurrentUser);
+  const currentUser = useAuthCurrentUser();
   const primaryCta = currentUser
-    ? { href: "/onboarding", label: "Продовжити онбординг" }
+    ? { href: "/admin", label: "Відкрити кабінет" }
     : { href: "/register", label: "Спробувати безкоштовно" };
 
   return (
@@ -127,7 +126,7 @@ export function LandingCTA() {
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:mb-12 sm:text-xl">
-            Приєднуйтесь до сотень ресторанів, які вже автоматизували бронювання
+            Приєднуйтеся до сотень ресторанів, які вже автоматизували бронювання
             та заощаджують 10+ годин на тиждень.
           </p>
 

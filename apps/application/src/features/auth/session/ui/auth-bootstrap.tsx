@@ -3,8 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { isApiError } from "@/shared/api";
+import { useAppDispatch, useAppSelector } from "@/shared/lib/store";
 
 import {
   authQueryKeys,

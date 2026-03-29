@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useCustomersQuery } from "@/entities/customer";
-import { useAdminAccessToken } from "@/views/admin/shared";
+import { useAuthAccessToken } from "@/features/auth/session";
 
 import {
   filterCustomers,
@@ -14,7 +14,7 @@ import {
 const EMPTY_CUSTOMERS: never[] = [];
 
 export function useCustomersPage() {
-  const accessToken = useAdminAccessToken();
+  const accessToken = useAuthAccessToken();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [tagFilter, setTagFilter] = React.useState("all");
   const customersQuery = useCustomersQuery(accessToken);

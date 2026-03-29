@@ -7,20 +7,28 @@ import {
   RestaurantIdentitySection,
   RestaurantOperationsSection,
   RestaurantSiteContentSection,
-} from "@/entities/restaurant";
+} from "@/features/restaurant";
 import { surfaceClassNames } from "@/shared/config";
 import { buildTenantSiteUrl } from "@/shared/lib/tenant";
+import { AdminPageLoadingState } from "@/shared/ui/admin";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
-import { AdminPageLoadingState } from "@/views/admin/shared";
 
 import { useAdminSettingsPage } from "../model/use-admin-settings-page";
 
 export function AdminSettingsPage() {
-  const settingsPage = useAdminSettingsPage();
+  const {
+    draft,
+    enabledSiteSectionCount,
+    isReady,
+    isSaving,
+    patchDraft,
+    saveDraft,
+    siteContentItemCount,
+  } = useAdminSettingsPage();
 
-  if (!settingsPage.isInitialized) {
+  if (!isReady) {
     return (
       <DashboardShell>
         <div className="flex min-h-[50vh] items-center justify-center">
@@ -40,27 +48,27 @@ export function AdminSettingsPage() {
           {
             label: "Домен",
             tone: "primary",
-            value: settingsPage.formData.domain
-              ? `${settingsPage.formData.domain}.table-reserve.com`
+            value: draft.domain
+              ? `${draft.domain}.table-reserve.com`
               : "ще не задано",
           },
           {
             label: "Вітрина",
             tone: "success",
-            value: `${settingsPage.enabledSectionsCount}/3 секції увімкнено`,
+            value: `${enabledSiteSectionCount}/3 секції увімкнено`,
           },
           {
             label: "Контент",
             tone: "info",
-            value: `${settingsPage.contentItemsCount} елементів`,
+            value: `${siteContentItemCount} елементів`,
           },
         ]}
         action={
           <div className="flex items-center gap-3">
-            {settingsPage.formData.domain ? (
+            {draft.domain ? (
               <Button variant="outline" asChild>
                 <Link
-                  href={buildTenantSiteUrl(settingsPage.formData.domain)}
+                  href={buildTenantSiteUrl(draft.domain)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -71,11 +79,11 @@ export function AdminSettingsPage() {
             ) : null}
             <Button
               className={surfaceClassNames.actionButton}
-              onClick={settingsPage.handleSave}
-              disabled={settingsPage.isSaving}
+              onClick={saveDraft}
+              disabled={isSaving}
             >
               <Save className="h-4 w-4" />
-              {settingsPage.isSaving ? "Зберігаємо..." : "Зберегти зміни"}
+              {isSaving ? "Зберігаємо..." : "Зберегти зміни"}
             </Button>
           </div>
         }
@@ -104,18 +112,9 @@ export function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        <RestaurantIdentitySection
-          value={settingsPage.formData}
-          onChange={settingsPage.handleFormChange}
-        />
-        <RestaurantSiteContentSection
-          value={settingsPage.formData}
-          onChange={settingsPage.handleFormChange}
-        />
-        <RestaurantOperationsSection
-          value={settingsPage.formData}
-          onChange={settingsPage.handleFormChange}
-        />
+        <RestaurantIdentitySection draft={draft} onPatch={patchDraft} />
+        <RestaurantSiteContentSection draft={draft} onPatch={patchDraft} />
+        <RestaurantOperationsSection draft={draft} onPatch={patchDraft} />
       </div>
     </DashboardShell>
   );

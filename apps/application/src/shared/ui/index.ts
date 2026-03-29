@@ -1,4 +1,5 @@
 export * from "./accordion";
+export * from "./admin";
 export * from "./animated-background";
 export * from "./avatar";
 export * from "./badge";

@@ -5,6 +5,8 @@ import Link from "next/link";
 import * as React from "react";
 
 import { LoginForm } from "@/features/auth/email-auth";
+import { setSession } from "@/features/auth/session";
+import { useAppDispatch } from "@/shared/lib/store";
 import {
   AnimatedBackground,
   DefaultFloatingElements,
@@ -15,6 +17,14 @@ import { Container } from "@/shared/ui/container";
 import { Benefits } from "./benefits";
 
 export function LoginPage() {
+  const dispatch = useAppDispatch();
+  const handleAuthenticated = React.useCallback(
+    (session: Parameters<typeof setSession>[0]) => {
+      dispatch(setSession(session));
+    },
+    [dispatch]
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -42,7 +52,7 @@ export function LoginPage() {
         <Container className="relative">
           <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
             <React.Suspense fallback={<div className="w-full max-w-md" />}>
-              <LoginForm />
+              <LoginForm onAuthenticated={handleAuthenticated} />
             </React.Suspense>
             <Benefits />
           </div>

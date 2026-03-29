@@ -9,4 +9,4 @@ export {
   getTableShapeLabel,
   getTableStatusBadgeClass,
   getTableStatusLabel,
-} from "./ui/status";
+} from "./lib/status-presentation";

@@ -1,15 +1,15 @@
 "use client";
 
-import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { DashboardShell, PageHeader } from "@/shared/ui/layout";
-import { SurfaceCard } from "@/shared/ui/surface-card";
 import {
   AdminInlineEmptyState,
   AdminPageLoadingState,
   AdminRefreshButton,
   MissingRestaurantState,
   SampleDataNotice,
-} from "@/views/admin/shared";
+} from "@/shared/ui/admin";
+import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { DashboardShell, PageHeader } from "@/shared/ui/layout";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 
 import { useDashboardPage } from "../model/use-dashboard-page";
 import { OccupancySlotItem } from "./components/occupancy-slot-item";

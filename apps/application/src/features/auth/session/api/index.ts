@@ -1,16 +1,20 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-
-import { getAuthHeaders, apiRequest } from "@/shared/api";
-import type { ApiResult } from "@/shared/api";
-
+import {
+  authSessionSchema,
+  authUserEnvelopeSchema,
+  logoutResultSchema,
+  refreshTokenInputSchema,
+} from "@booking/contracts/auth";
 import type {
   AuthSession,
   AuthUserEnvelope,
-  LoginPayload,
-  RegisterPayload,
-} from "../model/types";
+  LogoutResult,
+} from "@booking/contracts/auth";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { apiRequest, getAuthHeaders } from "@/shared/api";
+import type { ApiResult } from "@/shared/api";
 
 export const authQueryKeys = {
   currentUser: (accessToken: string | null) =>
@@ -27,51 +31,29 @@ export const authApi = {
       }
     );
 
-    return response.data;
+    return authUserEnvelopeSchema.parse(response.data);
   },
-  login: async (payload: LoginPayload): Promise<AuthSession> => {
-    const response = await apiRequest<ApiResult<AuthSession>>(
-      "/api/auth/login",
-      {
-        body: payload,
-        method: "POST",
-      }
-    );
-
-    return response.data;
-  },
-  logout: async (refreshToken: string): Promise<{ success: boolean }> => {
-    const response = await apiRequest<ApiResult<{ success: boolean }>>(
+  logout: async (refreshToken: string): Promise<LogoutResult> => {
+    const response = await apiRequest<ApiResult<LogoutResult>>(
       "/api/auth/logout",
       {
-        body: { refreshToken },
+        body: refreshTokenInputSchema.parse({ refreshToken }),
         method: "POST",
       }
     );
 
-    return response.data;
+    return logoutResultSchema.parse(response.data);
   },
   refresh: async (refreshToken: string): Promise<AuthSession> => {
     const response = await apiRequest<ApiResult<AuthSession>>(
       "/api/auth/refresh",
       {
-        body: { refreshToken },
+        body: refreshTokenInputSchema.parse({ refreshToken }),
         method: "POST",
       }
     );
 
-    return response.data;
-  },
-  register: async (payload: RegisterPayload): Promise<AuthSession> => {
-    const response = await apiRequest<ApiResult<AuthSession>>(
-      "/api/auth/register",
-      {
-        body: payload,
-        method: "POST",
-      }
-    );
-
-    return response.data;
+    return authSessionSchema.parse(response.data);
   },
 };
 
@@ -86,11 +68,6 @@ export const useCurrentUserQuery = (
     retry: false,
   });
 
-export const useLoginMutation = () =>
-  useMutation({
-    mutationFn: (payload: LoginPayload) => authApi.login(payload),
-  });
-
 export const useLogoutMutation = () =>
   useMutation({
     mutationFn: (refreshToken: string) => authApi.logout(refreshToken),
@@ -99,9 +76,4 @@ export const useLogoutMutation = () =>
 export const useRefreshSessionMutation = () =>
   useMutation({
     mutationFn: (refreshToken: string) => authApi.refresh(refreshToken),
-  });
-
-export const useRegisterMutation = () =>
-  useMutation({
-    mutationFn: (payload: RegisterPayload) => authApi.register(payload),
   });

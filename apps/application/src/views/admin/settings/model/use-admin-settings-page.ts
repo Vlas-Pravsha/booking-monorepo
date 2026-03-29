@@ -6,84 +6,77 @@ import { toast } from "sonner";
 import {
   applyRestaurantDraftPatch,
   createRestaurantDraft,
+  normalizeRestaurantUpsertPayload,
   toRestaurantUpsertPayload,
   useMyRestaurantQuery,
   useUpsertMyRestaurantMutation,
 } from "@/entities/restaurant";
 import type { RestaurantUpsertPayload } from "@/entities/restaurant";
+import { useAuthAccessToken } from "@/features/auth/session";
+import {
+  countEnabledSiteSections,
+  countSiteContentItems,
+} from "@/features/restaurant";
 import { isApiError } from "@/shared/api";
-import { useAdminAccessToken } from "@/views/admin/shared";
 
-function useRestaurantSettingsForm(accessToken: string | null) {
-  const [formData, setFormData] = React.useState<RestaurantUpsertPayload>(
+function useRestaurantDraftState(accessToken: string | null) {
+  const [draft, replaceDraft] = React.useState<RestaurantUpsertPayload>(
     createRestaurantDraft()
   );
-  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [isReady, setIsReady] = React.useState(false);
   const { data: restaurant, isLoading } = useMyRestaurantQuery(
     accessToken,
     Boolean(accessToken)
   );
 
   React.useEffect(() => {
-    if (isLoading || isInitialized) {
+    if (isLoading || isReady) {
       return;
     }
 
-    setFormData(
+    replaceDraft(
       restaurant
         ? toRestaurantUpsertPayload(restaurant)
         : createRestaurantDraft()
     );
-    setIsInitialized(true);
-  }, [isInitialized, isLoading, restaurant]);
+    setIsReady(true);
+  }, [isLoading, isReady, restaurant]);
 
-  const updateFormData = React.useCallback(
+  const patchDraft = React.useCallback(
     (patch: Partial<RestaurantUpsertPayload>) => {
-      setFormData((previousState) =>
-        applyRestaurantDraftPatch(previousState, patch)
+      replaceDraft((currentDraft) =>
+        applyRestaurantDraftPatch(currentDraft, patch)
       );
     },
     []
   );
 
   return {
-    formData,
-    isInitialized,
-    setFormData,
-    updateFormData,
+    draft,
+    isReady,
+    patchDraft,
+    replaceDraft,
   };
 }
 
 export function useAdminSettingsPage() {
-  const accessToken = useAdminAccessToken();
-  const settingsForm = useRestaurantSettingsForm(accessToken);
-  const saveMutation = useUpsertMyRestaurantMutation(accessToken);
-  const enabledSectionsCount = React.useMemo(
-    () =>
-      [
-        settingsForm.formData.showGallery,
-        settingsForm.formData.showMenu,
-        settingsForm.formData.showReviews,
-      ].filter(Boolean).length,
-    [
-      settingsForm.formData.showGallery,
-      settingsForm.formData.showMenu,
-      settingsForm.formData.showReviews,
-    ]
+  const accessToken = useAuthAccessToken();
+  const restaurantDraftState = useRestaurantDraftState(accessToken);
+  const saveDraftMutation = useUpsertMyRestaurantMutation(accessToken);
+  const enabledSiteSectionCount = countEnabledSiteSections(
+    restaurantDraftState.draft
   );
-  const contentItemsCount = React.useMemo(
-    () =>
-      settingsForm.formData.menuHighlights.length +
-      settingsForm.formData.gallery.length +
-      settingsForm.formData.reviews.length,
-    [
-      settingsForm.formData.gallery.length,
-      settingsForm.formData.menuHighlights.length,
-      settingsForm.formData.reviews.length,
-    ]
+  const siteContentItemCount = countSiteContentItems(
+    restaurantDraftState.draft
   );
-  const handleSave = React.useCallback(() => {
-    saveMutation.mutate(settingsForm.formData, {
+  const saveDraft = React.useCallback(() => {
+    const normalizedPayload = normalizeRestaurantUpsertPayload(
+      restaurantDraftState.draft
+    );
+
+    restaurantDraftState.replaceDraft(normalizedPayload);
+
+    saveDraftMutation.mutate(normalizedPayload, {
       onError: (error) => {
         toast.error(
           isApiError(error)
@@ -92,19 +85,21 @@ export function useAdminSettingsPage() {
         );
       },
       onSuccess: (savedRestaurant) => {
-        settingsForm.setFormData(toRestaurantUpsertPayload(savedRestaurant));
+        restaurantDraftState.replaceDraft(
+          toRestaurantUpsertPayload(savedRestaurant)
+        );
         toast.success("Налаштування збережено");
       },
     });
-  }, [saveMutation, settingsForm]);
+  }, [restaurantDraftState, saveDraftMutation]);
 
   return {
-    contentItemsCount,
-    enabledSectionsCount,
-    formData: settingsForm.formData,
-    handleFormChange: settingsForm.updateFormData,
-    handleSave,
-    isInitialized: settingsForm.isInitialized,
-    isSaving: saveMutation.isPending,
+    draft: restaurantDraftState.draft,
+    enabledSiteSectionCount,
+    isReady: restaurantDraftState.isReady,
+    isSaving: saveDraftMutation.isPending,
+    patchDraft: restaurantDraftState.patchDraft,
+    saveDraft,
+    siteContentItemCount,
   };
 }

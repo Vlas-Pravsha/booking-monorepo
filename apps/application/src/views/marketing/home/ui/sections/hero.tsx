@@ -4,8 +4,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { useAppSelector } from "@/app/store/hooks";
-import { selectCurrentUser } from "@/features/auth/session";
+import { useAuthCurrentUser } from "@/features/auth/session";
 import {
   AnimatedBackground,
   FloatingElement,
@@ -14,9 +13,9 @@ import { Button } from "@/shared/ui/button";
 import { Container } from "@/shared/ui/container";
 
 export function LandingHero() {
-  const currentUser = useAppSelector(selectCurrentUser);
+  const currentUser = useAuthCurrentUser();
   const primaryCta = currentUser
-    ? { href: "/onboarding", label: "Продовжити онбординг" }
+    ? { href: "/admin", label: "Відкрити кабінет" }
     : { href: "/register", label: "Почати безкоштовно" };
   const stats = [
     { label: "Ресторанів", value: "500+" },

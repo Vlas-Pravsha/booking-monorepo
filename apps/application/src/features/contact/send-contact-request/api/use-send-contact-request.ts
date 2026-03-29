@@ -1,28 +1,27 @@
 "use client";
 
+import {
+  contactRequestInputSchema,
+  contactRequestResultSchema,
+} from "@booking/contracts/public";
+import type {
+  ContactRequestPayload,
+  ContactRequestResult,
+} from "@booking/contracts/public";
 import { useMutation } from "@tanstack/react-query";
 
 import { apiRequest } from "@/shared/api";
 import type { ApiResult } from "@/shared/api";
 
-export interface ContactRequestPayload {
-  email: string;
-  message: string;
-  name: string;
-  phone: string;
-}
-
 export const contactRequestApi = {
-  send: (
-    payload: ContactRequestPayload
-  ): Promise<{ success: true; submittedAt: string }> =>
-    apiRequest<ApiResult<{ success: true; submittedAt: string }>>(
+  send: (payload: ContactRequestPayload): Promise<ContactRequestResult> =>
+    apiRequest<ApiResult<ContactRequestResult>>(
       "/api/public/contact-requests",
       {
-        body: payload,
+        body: contactRequestInputSchema.parse(payload),
         method: "POST",
       }
-    ).then((response) => response.data),
+    ).then((response) => contactRequestResultSchema.parse(response.data)),
 };
 
 export const useSendContactRequest = () =>
