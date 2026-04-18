@@ -339,3 +339,95 @@ MWP можна вважати готовим, коли виконуються в
 - прибрати з адмінки зайві операційні сценарії, які не входять у MWP;
 - зробити справжнє бронювання;
 - добудувати AI, який знаходить слабкі дні й генерує знижки.
+
+## 13. Технічний контекст репозиторію
+
+Цей проєкт — pnpm + Turborepo monorepo.
+
+Актуальні runtime apps і packages:
+
+- `apps/application` — Next.js 16 frontend для marketing, auth, onboarding, tenant site і admin UI;
+- `apps/backend` — Hono REST API для auth, restaurant owner data, admin data, public reservations, contact requests і persistence;
+- `packages/contracts` — shared Zod contracts і TypeScript types для frontend/backend синхронізації.
+
+Поточна архітектура:
+
+```text
+Browser / root domain / admin subdomain / tenant subdomain
+  -> Next.js application with proxy-based routing
+  -> shared API client + TanStack Query / Redux
+  -> Hono REST API
+  -> contracts/zod + domain functions + Prisma
+  -> database/cache/storage providers
+```
+
+Важливі шляхи:
+
+- frontend routes/views: `apps/application/src/app`, `views`, `widgets`, `features`, `entities`, `shared`;
+- backend routes/domains: `apps/backend/src/routes`, `domains`, `contracts`, `core`, `lib`;
+- Prisma schema: `apps/backend/prisma/schema.prisma`;
+- generated Prisma client: `apps/backend/src/generated/prisma` — вручну не редагувати;
+- roadmap задач: `tasks/README.md`.
+
+## 14. Development Commands
+
+З root директорії:
+
+```bash
+pnpm install
+pnpm dev
+pnpm check
+pnpm check-types
+pnpm build
+```
+
+App-specific validation:
+
+```bash
+pnpm --filter @booking/contracts check-types
+pnpm --filter @booking/contracts build
+pnpm --filter @booking/backend check-types
+pnpm --filter @booking/backend build
+pnpm --filter booking-system check-types
+pnpm --filter booking-system build
+```
+
+Для full-stack задач треба перевіряти contracts, backend і frontend разом.
+
+## 15. Contracts-First Rule
+
+Кожна API-зміна має йти в такому порядку:
+
+```text
+packages/contracts
+  -> apps/backend/src/contracts + routes + domains
+  -> apps/application shared api + entities/features/views
+  -> validation
+```
+
+Це критично для MWP, бо frontend і backend уже мають реальні API-backed flows. Якщо змінити тільки UI або тільки backend, легко отримати contract drift.
+
+## 16. Roadmap
+
+Детальний план реалізації живе в `tasks/`.
+
+Початковий порядок:
+
+1. `tasks/00-project-docs-alignment.md`
+2. `tasks/01-postgresql-docker-migration.md`
+3. `tasks/02-redis-caching.md`
+4. `tasks/03-s3-storage.md`
+5. `tasks/06-booking-engine-improvements.md`
+6. `tasks/05-ai-discount-engine.md`
+7. `tasks/08-admin-ai-ui.md`
+8. `tasks/09-seed-data-demo.md`
+9. `tasks/11-testing-and-quality.md`
+10. `tasks/07-production-deployment.md`
+11. `tasks/12-production-hardening.md`
+12. `tasks/14-application-security.md`
+13. `tasks/13-prometheus-metrics.md`
+
+P1 задачі, якщо лишається час:
+
+- `tasks/04-google-vision-menu-parse.md`;
+- `tasks/10-email-delivery.md`.
