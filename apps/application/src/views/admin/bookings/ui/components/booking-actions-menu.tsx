@@ -1,6 +1,13 @@
+"use client";
+
 import { Check, MoreHorizontal, X } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Booking } from "@/entities/booking";
+import { useAuthAccessToken } from "@/features/auth/session";
+import { useUpdateBookingStatusMutation } from "@/features/booking/update-status";
+import { isApiError } from "@/shared/api";
+import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -10,10 +17,38 @@ import {
 } from "@/shared/ui/dropdown-menu";
 
 interface BookingActionsMenuProps {
+  bookingId: string;
   status: Booking["status"];
 }
 
-export function BookingActionsMenu({ status }: BookingActionsMenuProps) {
+export function BookingActionsMenu({
+  bookingId,
+  status,
+}: BookingActionsMenuProps) {
+  const accessToken = useAuthAccessToken();
+  const updateStatusMutation = useUpdateBookingStatusMutation(accessToken);
+
+  const handleStatusChange = (nextStatus: Booking["status"]) => {
+    updateStatusMutation.mutate(
+      {
+        bookingId,
+        status: nextStatus,
+      },
+      {
+        onError: (error) => {
+          toast.error(
+            isApiError(error)
+              ? error.message
+              : "Не вдалося оновити статус бронювання."
+          );
+        },
+        onSuccess: () => {
+          toast.success("Статус бронювання оновлено");
+        },
+      }
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -22,30 +57,49 @@ export function BookingActionsMenu({ status }: BookingActionsMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>Деталі</DropdownMenuItem>
-        <DropdownMenuItem>Редагувати</DropdownMenuItem>
-        {status === "pending" && (
+        {status === "pending" ? (
           <>
-            <DropdownMenuItem className="text-emerald-600">
-              <Check className="h-4 w-4 mr-2" />
+            <DropdownMenuItem
+              className={semanticToneStyles.success.text}
+              onClick={() => handleStatusChange("confirmed")}
+            >
+              <Check className="mr-2 h-4 w-4" />
               Підтвердити
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              <X className="h-4 w-4 mr-2" />
+            <DropdownMenuItem
+              className={semanticToneStyles.danger.text}
+              onClick={() => handleStatusChange("cancelled")}
+            >
+              <X className="mr-2 h-4 w-4" />
               Скасувати
             </DropdownMenuItem>
           </>
-        )}
-        {status === "confirmed" && (
-          <DropdownMenuItem>
-            <Check className="h-4 w-4 mr-2" />
-            Позначити як &quot;За столом&quot;
+        ) : null}
+        {status === "confirmed" ? (
+          <>
+            <DropdownMenuItem onClick={() => handleStatusChange("seated")}>
+              <Check className="mr-2 h-4 w-4" />
+              Позначити як за столом
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={semanticToneStyles.danger.text}
+              onClick={() => handleStatusChange("cancelled")}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Скасувати
+            </DropdownMenuItem>
+          </>
+        ) : null}
+        {status === "seated" ? (
+          <DropdownMenuItem onClick={() => handleStatusChange("completed")}>
+            <Check className="mr-2 h-4 w-4" />
+            Завершити візит
           </DropdownMenuItem>
-        )}
-        {status === "seated" && (
-          <DropdownMenuItem>
-            <Check className="h-4 w-4 mr-2" />
-            Завершити
+        ) : null}
+        {(status === "cancelled" || status === "completed") && (
+          <DropdownMenuItem onClick={() => handleStatusChange("confirmed")}>
+            <Check className="mr-2 h-4 w-4" />
+            Повернути в активні
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

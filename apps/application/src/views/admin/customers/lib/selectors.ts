@@ -1,4 +1,5 @@
 import type { Customer } from "@/entities/customer";
+import { getLocalMonthKey } from "@/shared/lib/formatters";
 
 import type { CustomerStats } from "../model/types";
 
@@ -36,10 +37,16 @@ export function filterCustomers(
 export function getCustomerStats(
   customers: readonly Customer[]
 ): CustomerStats {
+  const currentMonthKey = getLocalMonthKey(new Date());
+
   return {
-    newThisMonth: 2,
-    thisMonth: customers.filter((customer) =>
-      customer.lastVisit.startsWith("28.02")
+    newThisMonth: customers.filter(
+      (customer) => getLocalMonthKey(customer.createdAt) === currentMonthKey
+    ).length,
+    thisMonth: customers.filter(
+      (customer) =>
+        customer.lastVisitAt &&
+        getLocalMonthKey(customer.lastVisitAt) === currentMonthKey
     ).length,
     total: customers.length,
     vip: customers.filter((customer) => customer.vip).length,

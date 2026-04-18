@@ -1,0 +1,9 @@
+export { RestaurantAbout } from "./ui/restaurant-about";
+export { RestaurantBookingInfo } from "./ui/restaurant-booking-info";
+export { RestaurantContacts } from "./ui/restaurant-contacts";
+export { RestaurantExperience } from "./ui/restaurant-experience";
+export { RestaurantGallery } from "./ui/restaurant-gallery";
+export { RestaurantHero } from "./ui/restaurant-hero";
+export { RestaurantMenu } from "./ui/restaurant-menu";
+export { RestaurantNavigation } from "./ui/restaurant-navigation";
+export { RestaurantReviews } from "./ui/restaurant-reviews";

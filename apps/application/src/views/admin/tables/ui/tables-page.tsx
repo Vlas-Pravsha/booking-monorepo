@@ -1,76 +1,110 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import * as React from "react";
-
-import { TABLES } from "@/entities/table";
-import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+  AdminPageLoadingState,
+  AdminRefreshButton,
+  MissingRestaurantState,
+  SampleDataNotice,
+} from "@/shared/ui/admin";
+import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 
-import { getTableStats } from "../lib/get-table-stats";
-import type { ViewMode } from "../model/types";
+import { useTablesPage } from "../model/use-tables-page";
 import { TableGridItem } from "./components/table-grid-item";
 import { TableListItem } from "./components/table-list-item";
 import { TableViewModeToggle } from "./components/table-view-mode-toggle";
 import { TablesStats } from "./components/tables-stats";
 
 export function AdminTablesPage() {
-  const [viewMode, setViewMode] = React.useState<ViewMode>("grid");
+  const pageData = useTablesPage();
 
-  const stats = React.useMemo(() => getTableStats(TABLES), []);
+  if (pageData.isLoading) {
+    return (
+      <DashboardShell>
+        <AdminPageLoadingState message="Завантажуємо план залу..." />
+      </DashboardShell>
+    );
+  }
 
-  const setGridView = React.useCallback(() => {
-    setViewMode("grid");
-  }, []);
-
-  const setListView = React.useCallback(() => {
-    setViewMode("list");
-  }, []);
+  if (!pageData.restaurant) {
+    return (
+      <DashboardShell>
+        <MissingRestaurantState />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
       <PageHeader
+        eyebrow="План зали"
         title="Столи"
-        subtitle="Управління столиками закладу"
+        subtitle="Стани столів будуються з реального плану залу, бронювань і технічного статусу."
+        insights={[
+          {
+            label: "Всього столів",
+            tone: "primary",
+            value: `${pageData.stats.total} позицій`,
+          },
+          {
+            label: "Готові до посадки",
+            tone: "success",
+            value: `${pageData.stats.available} вільних`,
+          },
+          {
+            label: "Місткість",
+            tone: "info",
+            value: `${pageData.stats.totalSeats} місць загалом`,
+          },
+        ]}
         action={
-          <Button className="gap-2 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:scale-105 hover:shadow-primary/30">
-            <Plus className="h-4 w-4" />
-            Додати стіл
-          </Button>
+          <AdminRefreshButton
+            onClick={() => pageData.refreshTables()}
+            disabled={pageData.isRefreshing}
+            label="Оновити план"
+          />
         }
       />
 
-      <TablesStats stats={stats} />
+      {pageData.tablesQuery.data?.hasSampleData ? <SampleDataNotice /> : null}
 
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
+      <TablesStats stats={pageData.stats} />
+
+      <SurfaceCard>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>План зали</CardTitle>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="text-xl font-semibold">План зали</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Перемикайтеся між grid і list view для швидкого контролю
+                простору.
+              </p>
+            </div>
             <TableViewModeToggle
-              viewMode={viewMode}
-              onSetGrid={setGridView}
-              onSetList={setListView}
+              viewMode={pageData.viewMode}
+              onSetGrid={() => pageData.setViewMode("grid")}
+              onSetList={() => pageData.setViewMode("list")}
             />
           </div>
         </CardHeader>
 
         <CardContent>
-          {viewMode === "grid" ? (
-            <div className="grid grid-cols-3 gap-4">
-              {TABLES.map((table) => (
+          {pageData.viewMode === "grid" ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {pageData.tables.map((table) => (
                 <TableGridItem key={table.id} table={table} />
               ))}
             </div>
           ) : (
             <div className="space-y-2">
-              {TABLES.map((table) => (
+              {pageData.tables.map((table) => (
                 <TableListItem key={table.id} table={table} />
               ))}
             </div>
           )}
         </CardContent>
-      </Card>
+      </SurfaceCard>
     </DashboardShell>
   );
 }

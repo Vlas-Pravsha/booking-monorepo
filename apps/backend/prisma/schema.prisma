@@ -1,15 +1,223 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  firstName           String?
+  lastName            String?
+  status              String               @default("ACTIVE")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  lastLoginAt         DateTime?
+  sessions            AuthSession[]
+  passwordResetTokens PasswordResetToken[]
+  restaurant          Restaurant?
+}
+
+model AuthSession {
+  id               String    @id
+  userId           String
+  refreshTokenHash String    @unique
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Restaurant {
+  id               String                   @id @default(cuid())
+  ownerId          String                   @unique
+  domain           String                   @unique
+  name             String
+  shortDescription String
+  description      String
+  logo             String?
+  heroImage        String?
+  address          String
+  phone            String
+  email            String?
+  workHours        String
+  openingTime      String
+  closingTime      String
+  averageDuration  Int                      @default(90)
+  cuisine          String
+  priceRange       String                   @default("₴₴")
+  showMenu         Boolean                  @default(false)
+  showGallery      Boolean                  @default(false)
+  showReviews      Boolean                  @default(false)
+  instagram        String?
+  facebook         String?
+  telegram         String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  owner            User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  customers        Customer[]
+  bookings         Booking[]
+  features         RestaurantFeature[]
+  menuHighlights   RestaurantMenuItem[]
+  reviews          RestaurantReview[]
+  gallery          RestaurantGalleryImage[]
+  tables           RestaurantTable[]
+
+  @@index([ownerId])
+}
+
+model RestaurantFeature {
+  id           String     @id @default(cuid())
+  restaurantId String
+  label        String
+  position     Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, position])
+}
+
+model RestaurantMenuItem {
+  id           String     @id @default(cuid())
+  restaurantId String
+  name         String
+  description  String
+  price        Int
+  image        String?
+  position     Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, position])
+}
+
+model RestaurantReview {
+  id           String     @id @default(cuid())
+  restaurantId String
+  author       String
+  avatar       String?
+  rating       Int
+  text         String
+  date         String
+  position     Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, position])
+}
+
+model RestaurantGalleryImage {
+  id           String     @id @default(cuid())
+  restaurantId String
+  image        String
+  position     Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, position])
+}
+
+model RestaurantTable {
+  id             String     @id @default(cuid())
+  restaurantId   String
+  name           String
+  seats          Int
+  position       Int
+  statusOverride String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now()) @updatedAt
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  bookings       Booking[]
+
+  @@unique([restaurantId, position])
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  restaurantId String
+  name         String
+  phone        String?
+  email        String?
+  notes        String        @default("")
+  vip          Boolean       @default(false)
+  isSample     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tags         CustomerTag[]
+  bookings     Booking[]
+
+  @@index([restaurantId, createdAt])
+  @@index([restaurantId, vip])
+}
+
+model CustomerTag {
+  id         String   @id @default(cuid())
+  customerId String
+  label      String
+  position   Int
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, position])
+}
+
+model Booking {
+  id            String           @id @default(cuid())
+  restaurantId  String
+  customerId    String?
+  tableId       String?
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+  guestCount    Int
+  startAt       DateTime
+  endAt         DateTime
+  status        String           @default("pending")
+  source        String           @default("website")
+  totalAmount   Int              @default(0)
+  note          String           @default("")
+  isSample      Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  restaurant    Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer      Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  table         RestaurantTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId, startAt])
+  @@index([restaurantId, status])
+  @@index([customerId, startAt])
+  @@index([tableId, startAt])
+}
+
+model MarketingContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  message   String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email, createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }

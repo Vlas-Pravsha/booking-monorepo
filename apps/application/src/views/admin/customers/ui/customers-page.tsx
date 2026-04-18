@@ -1,11 +1,18 @@
 "use client";
 
-import { Filter, Plus, Search } from "lucide-react";
-import * as React from "react";
+import { Filter, Search } from "lucide-react";
 
-import { CUSTOMERS } from "@/entities/customer";
+import { surfaceClassNames } from "@/shared/config";
+import { cn } from "@/shared/lib/utils";
+import {
+  AdminInlineEmptyState,
+  AdminPageLoadingState,
+  AdminRefreshButton,
+  MissingRestaurantState,
+  SampleDataNotice,
+} from "@/shared/ui/admin";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { CardContent, CardHeader } from "@/shared/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,81 +21,118 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Input } from "@/shared/ui/input";
 import { DashboardShell, PageHeader } from "@/shared/ui/layout";
+import { SurfaceCard } from "@/shared/ui/surface-card";
 
-import {
-  filterCustomers,
-  getAllCustomerTags,
-  getCustomerStats,
-} from "../lib/selectors";
+import { useCustomersPage } from "../model/use-customers-page";
 import { CustomerRow } from "./components/customer-row";
 import { CustomersStats } from "./components/customers-stats";
 import { TagFilterItem } from "./components/tag-filter-item";
 
 export function AdminCustomersPage() {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [tagFilter, setTagFilter] = React.useState<string>("all");
+  const pageData = useCustomersPage();
 
-  const allTags = React.useMemo(() => getAllCustomerTags(CUSTOMERS), []);
+  if (pageData.isLoading) {
+    return (
+      <DashboardShell>
+        <AdminPageLoadingState message="Завантажуємо клієнтську базу..." />
+      </DashboardShell>
+    );
+  }
 
-  const filteredCustomers = React.useMemo(
-    () => filterCustomers(CUSTOMERS, searchQuery, tagFilter),
-    [searchQuery, tagFilter]
-  );
-
-  const stats = React.useMemo(() => getCustomerStats(CUSTOMERS), []);
-
-  const handleSearchChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchQuery(event.target.value);
-    },
-    []
-  );
+  if (!pageData.restaurant) {
+    return (
+      <DashboardShell>
+        <MissingRestaurantState />
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
       <PageHeader
+        eyebrow="База гостей"
         title="Клієнти"
-        subtitle="База клієнтів та історія відвідувань"
+        subtitle="Клієнтська база формується з реальних бронювань і персональних карток гостей."
+        insights={[
+          {
+            label: "Всього клієнтів",
+            tone: "primary",
+            value: `${pageData.stats.total} у базі`,
+          },
+          {
+            label: "VIP сегмент",
+            tone: "warning",
+            value: `${pageData.stats.vip} постійних гостей`,
+          },
+          {
+            label: "Нові за місяць",
+            tone: "success",
+            value: `+${pageData.stats.newThisMonth} нових контактів`,
+          },
+        ]}
         action={
-          <Button className="gap-2 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:scale-105 hover:shadow-primary/30">
-            <Plus className="h-4 w-4" />
-            Додати клієнта
-          </Button>
+          <AdminRefreshButton
+            onClick={() => pageData.refreshCustomers()}
+            disabled={pageData.isRefreshing}
+            label="Оновити базу"
+          />
         }
       />
 
-      <CustomersStats stats={stats} />
+      {pageData.customersQuery.data?.hasSampleData ? (
+        <SampleDataNotice />
+      ) : null}
 
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
+      <CustomersStats stats={pageData.stats} />
+
+      <SurfaceCard>
         <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="mb-4 space-y-1">
+            <p className="text-sm font-semibold text-foreground">
+              Пошук і сегментація
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Знаходьте гостей за контактами та відбирайте потрібні теги для
+              швидких дій.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Пошук за іменем, телефоном або email..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="pl-10 bg-white/50"
+                value={pageData.searchQuery}
+                onChange={(event) =>
+                  pageData.setSearchQuery(event.target.value)
+                }
+                className={cn(surfaceClassNames.mutedInput, "pl-10")}
               />
             </div>
 
             <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
+                  <Button variant="outline" className="gap-2 rounded-full">
                     <Filter className="h-4 w-4" />
-                    {tagFilter === "all" ? "Всі теги" : tagFilter}
+                    {pageData.tagFilter === "all"
+                      ? "Всі теги"
+                      : pageData.tagFilter}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTagFilter("all")}>
+                  <DropdownMenuItem
+                    onClick={() => pageData.setTagFilter("all")}
+                  >
                     Всі теги
                   </DropdownMenuItem>
-                  {allTags.map((tag) => (
+                  {pageData.allTags.map((tag) => (
                     <TagFilterItem
                       key={tag}
                       tag={tag}
-                      onSelect={setTagFilter}
+                      onSelect={(selectedTag) =>
+                        pageData.setTagFilter(selectedTag)
+                      }
                     />
                   ))}
                 </DropdownMenuContent>
@@ -99,12 +143,16 @@ export function AdminCustomersPage() {
 
         <CardContent>
           <div className="space-y-2">
-            {filteredCustomers.map((customer) => (
-              <CustomerRow key={customer.id} customer={customer} />
-            ))}
+            {pageData.filteredCustomers.length > 0 ? (
+              pageData.filteredCustomers.map((customer) => (
+                <CustomerRow key={customer.id} customer={customer} />
+              ))
+            ) : (
+              <AdminInlineEmptyState message="Клієнтів за поточним фільтром не знайдено." />
+            )}
           </div>
         </CardContent>
-      </Card>
+      </SurfaceCard>
     </DashboardShell>
   );
 }

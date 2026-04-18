@@ -1,6 +1,7 @@
 import { CalendarDays, Star, User } from "lucide-react";
 
-import { Card, CardContent } from "@/shared/ui/card";
+import type { SummaryStatItem } from "@/shared/ui/stats";
+import { SummaryStatsGrid } from "@/shared/ui/stats";
 
 import type { CustomerStats } from "../../model/types";
 
@@ -9,67 +10,22 @@ interface CustomersStatsProps {
 }
 
 export function CustomersStats({ stats }: CustomersStatsProps) {
-  return (
-    <div className="grid gap-4 md:grid-cols-4">
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary p-2 rounded-lg">
-              <User className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Всього клієнтів</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  const items: readonly SummaryStatItem[] = [
+    { icon: User, label: "Всього клієнтів", value: stats.total },
+    { icon: Star, label: "VIP клієнтів", tone: "warning", value: stats.vip },
+    {
+      icon: CalendarDays,
+      label: "Відвідали цього місяця",
+      tone: "success",
+      value: stats.thisMonth,
+    },
+    {
+      icon: User,
+      label: "Нових цього місяця",
+      tone: "info",
+      value: `+${stats.newThisMonth}`,
+    },
+  ];
 
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-amber-500/10 text-amber-600 p-2 rounded-lg">
-              <Star className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.vip}</p>
-              <p className="text-xs text-muted-foreground">VIP клієнтів</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-500/10 text-emerald-600 p-2 rounded-lg">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.thisMonth}</p>
-              <p className="text-xs text-muted-foreground">
-                Відвідали цього місяця
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-none bg-white/80 backdrop-blur-sm shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-500/10 text-blue-600 p-2 rounded-lg">
-              <User className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">+{stats.newThisMonth}</p>
-              <p className="text-xs text-muted-foreground">
-                Нових цього місяця
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <SummaryStatsGrid items={items} />;
 }

@@ -1,0 +1,41 @@
+{
+  "name": "@booking/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./admin": {
+      "types": "./src/admin.ts",
+      "default": "./src/admin.ts"
+    },
+    "./auth": {
+      "types": "./src/auth.ts",
+      "default": "./src/auth.ts"
+    },
+    "./public": {
+      "types": "./src/public.ts",
+      "default": "./src/public.ts"
+    },
+    "./restaurant": {
+      "types": "./src/restaurant.ts",
+      "default": "./src/restaurant.ts"
+    },
+    "./shared": {
+      "types": "./src/shared.ts",
+      "default": "./src/shared.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --noEmit --watch"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}

@@ -1,4 +1,4 @@
-import { RestaurantBookingPage } from "@/views/tenant/booking";
+import { RestaurantBookingPage } from "@/views/tenant";
 
 interface Props {
   params: Promise<{ domain: string }>;

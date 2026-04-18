@@ -1,4 +1,5 @@
 export {
+  buildTenantSiteUrl,
   PROXY_CONFIG,
   getSubdomain,
   getTenantSlug,

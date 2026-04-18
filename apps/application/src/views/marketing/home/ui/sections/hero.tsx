@@ -4,6 +4,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { useAuthCurrentUser } from "@/features/auth/session";
 import {
   AnimatedBackground,
   FloatingElement,
@@ -12,6 +13,10 @@ import { Button } from "@/shared/ui/button";
 import { Container } from "@/shared/ui/container";
 
 export function LandingHero() {
+  const currentUser = useAuthCurrentUser();
+  const primaryCta = currentUser
+    ? { href: "/admin", label: "Відкрити кабінет" }
+    : { href: "/register", label: "Почати безкоштовно" };
   const stats = [
     { label: "Ресторанів", value: "500+" },
     { label: "Бронювань/міс", value: "50K+" },
@@ -66,8 +71,8 @@ export function LandingHero() {
               className="h-14 shadow-2xl shadow-primary/25 transition-all hover:scale-105 hover:shadow-primary/40 px-10 text-lg font-semibold"
               asChild
             >
-              <Link href="/register">
-                Почати безкоштовно
+              <Link href={primaryCta.href}>
+                {primaryCta.label}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -77,7 +82,7 @@ export function LandingHero() {
               className="h-14 px-10 text-lg font-semibold"
               asChild
             >
-              <Link href="#demo">Дивитися демо</Link>
+              <Link href="#how-it-works">Як це працює</Link>
             </Button>
           </div>
 

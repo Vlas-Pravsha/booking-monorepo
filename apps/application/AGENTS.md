@@ -1,157 +1,121 @@
-# AGENTS.md - Coding Agent Guidelines
+# Gemini CLI Guide - Smart Booking System
 
-## Project Overview
+This document provides architectural context, strict coding guidelines, and domain knowledge for Gemini CLI when collaborating on the **table-reserve.com** Smart Booking System.
 
-This is a Next.js 16 SaaS booking system for restaurant table reservations using the T3 Stack. The codebase follows a Feature-Sliced Design architecture pattern.
+## 🏢 Project Overview
 
-## Build/Lint/Test Commands
+A multi-tenant SaaS application designed to reduce restaurant no-shows and streamline table management using the **T3 Stack** and **Feature-Sliced Design (FSD)**.
 
-```bash
-pnpm dev          # Start development server with Turbopack
-pnpm build        # Production build
-pnpm start        # Start production server
-pnpm preview      # Build and start production server
+- **Marketing (`table-reserve.com`):** Landing page for restaurant owners.
+- **Admin (`app.table-reserve.com`):** Back-office for floor plans, bookings, and staff.
+- **Tenant (`[restaurant].table-reserve.com`):** Customer-facing booking portal.
+- **API (`api.table-reserve.com`):** External Core data processing layer.
 
-pnpm lint         # Run ESLint
-pnpm lint:fix     # Run ESLint with auto-fix
-pnpm typecheck    # Run TypeScript type checking
-pnpm check        # Run both lint and typecheck
+## 🛠️ Tech Stack
 
-pnpm format:check # Check formatting with Prettier
-pnpm format:write # Format files with Prettier
-```
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org) with React 19
+- **Language**: [TypeScript 5.8](https://www.typescriptlang.org/) (Strict mode)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **State**: [Redux Toolkit](https://redux-toolkit.js.org/) + [TanStack React Query](https://tanstack.com/query/latest)
+- **Validation**: [Zod](https://zod.dev/) + [@t3-oss/env-nextjs](https://env.t3.gg/)
+- **Architecture**: [Feature-Sliced Design (FSD)](https://feature-sliced.design/)
 
-**No test framework is currently configured.** When tests are added, update this file.
-
-## Tech Stack
-
-- **Framework**: Next.js 16 (App Router) with React 19
-- **Language**: TypeScript 5.8 (strict mode enabled)
-- **Styling**: Tailwind CSS 4 with shadcn/ui components
-- **State**: Redux Toolkit + TanStack React Query
-- **Validation**: Zod schemas with @t3-oss/env-nextjs
-- **Package Manager**: pnpm 9.15.3
-- **Linting**: ESLint 9 with @antfu/eslint-config
-- **Formatting**: Prettier with prettier-plugin-tailwindcss
-
-## Project Structure
+## 📐 Architecture
 
 ```
-src/
-├── app/              # Next.js App Router (layouts, pages, providers, store)
-│   ├── (marketing)/  # Route group for marketing pages
-│   ├── (admin)/      # Route group for admin pages
-│   ├── [domain]/     # Dynamic route for tenant domains
-│   ├── providers/    # React Query & Redux providers
-│   └── store.ts      # Redux store configuration
-├── entities/         # Business domain entities (user, booking, etc.)
-├── features/         # Feature slices (auth, booking flow, etc.)
-├── views/            # Page-level components (composed of widgets/features)
-├── shared/           # Shared utilities, UI components, config
-│   ├── config/       # Environment variables, app config
-│   ├── lib/          # Utilities, hooks
-│   └── ui/           # Reusable UI components (shadcn/ui)
-└── widgets/          # Composite UI blocks (header, footer, etc.)
+┌─────────────────────────────────────────────────────────────┐
+│                       CLIENT (Next.js)                      │
+│  React 19 + Redux Toolkit + TanStack Query                  │
+│  Tailwind CSS 4 + shadcn/ui + Framer Motion                 │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              │ REST API / JSON
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   BACKEND (External API)                    │
+│  Node.js / Express / NestJS (External Service)              │
+│  Data persistence, Business Logic, Auth                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Code Style Guidelines
+## 🚨 CRITICAL: DEVELOPMENT MANDATES 🚨
 
-### Imports
+**This is a HARD REQUIREMENT. When implementing features:**
 
-- Use `import type` for type-only imports
-- Order: type imports first, then regular imports
-- Use path alias `@/*` for imports from `src/`:
-  ```typescript
-  import type { ButtonProps } from "@/shared/ui/button";
-  import { cn } from "@/shared/lib/utils";
-  ```
+1. **FSD ADHERENCE**: Strictly follow Feature-Sliced Design. Do not cross-import between slices in the same layer.
+2. **UKRAINIAN UI**: All user-facing text **MUST** be in Ukrainian.
+3. **STRICT TYPING**: `any` is forbidden. Use `import type` for type-only imports.
+4. **NO SERVER ACTIONS**: Use the centralized API client and TanStack Query for all mutations.
+5. **NAMED EXPORTS**: Avoid default exports for components. Use function declarations.
+6. **CODE STYLE**: No semicolons, single quotes, 2-space indentation.
+7. **TENANT ISOLATION**: Ensure `[domain]` routing correctly identifies the current tenant for API calls.
 
-### Formatting (Prettier)
+## 📁 Project Structure
 
-- **No semicolons**
-- **Single quotes** for JS/TS strings
-- **Double quotes** for JSX attributes
-- **Trailing commas** everywhere
-- **2-space indentation**
-- **Print width**: 80 characters
+| Directory       | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `src/app/`      | Next.js App Router (Layouts, Pages, Providers, Store)  |
+| `src/entities/` | Business domain entities (user, booking, restaurant)   |
+| `src/features/` | User-facing features (auth-by-email, make-reservation) |
+| `src/views/`    | Page-level components (composed of widgets/features)   |
+| `src/shared/`   | Reusable UI (shadcn), utils, hooks, config, API client |
+| `src/widgets/`  | Composite UI blocks (Header, Footer, Sidebar)          |
 
-### TypeScript
+## 📖 Key Documentation
 
-- Strict mode enabled with `noUncheckedIndexedAccess`
-- Use `verbatimModuleSyntax` for explicit type imports
-- Prefer interfaces for component props
-- Use `React.ReactNode` for children types
-- Export types alongside implementations when needed
+| File                     | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| [AGENTS.md](AGENTS.md)   | Detailed coding style, linting, and formatting rules |
+| [README.md](README.md)   | Project initialization and general information       |
+| `openspec/specs/guides/` | Detailed architectural and style guides              |
+
+## 🛠️ Implementation Guidelines
+
+### Feature-Sliced Design (FSD)
+
+- **Entities**: Business logic and data models. (e.g., `src/entities/user`)
+- **Features**: User actions that bring business value. (e.g., `src/features/auth-by-email`)
+- **Widgets**: Large self-contained UI blocks. (e.g., `src/widgets/header`)
+- **Shared**: Non-business-specific components and utils. (e.g., `src/shared/api`)
+
+### API Integration
+
+All communication with the backend must happen through the shared API client using **TanStack Query**. Direct usage of `fetch` or Next.js `use server` is not allowed.
 
 ### React Components
 
-- Use function declarations, not arrow functions
-- Add `'use client'` directive at the very top for client components
-- Use named exports (avoid default exports for components)
+- Use **function declarations**: `export function Component() { ... }`
 - Pattern for component files:
 
   ```tsx
   "use client";
-
-  import type { SomeType } from "library";
-  import { something } from "library";
-  import * as React from "react";
-
+  import type { ComponentProps } from "./types";
   import { cn } from "@/shared/lib/utils";
 
-  export interface ComponentNameProps {
-    prop: string;
-  }
-
-  export function ComponentName({ prop }: ComponentNameProps) {
-    return <div>{prop}</div>;
+  export function MyComponent({ className }: ComponentProps) {
+    return <div className={cn("base-class", className)}>...</div>;
   }
   ```
 
-### File Organization
+## ⚡ Quick Reference Commands
 
-- Barrel exports in `index.ts` files for each module:
-  ```typescript
-  export * from "./button";
-  export { HomePage } from "./ui/home-page";
-  ```
-- UI components in `ui/` subdirectory
-- Hooks in `lib/hooks/` subdirectory
-- Config in `config/` subdirectory
+```bash
+# Development
+pnpm dev          # Start dev server with Turbopack
+pnpm build        # Build for production
+pnpm check        # Lint + Typecheck (MANDATORY before completion)
 
-### Naming Conventions
+# Code Quality
+pnpm lint:fix     # Auto-fix linting errors
+pnpm format:write # Format with Prettier
+pnpm typecheck    # Run TS compiler check
+```
 
-- **Components**: PascalCase (`HomePage`, `Button`)
-- **Files**: kebab-case (`home-page.tsx`, `react-query-provider.tsx`)
-- **Directories**: kebab-case (`admin-dashboard/`)
-- **Hooks**: `use` prefix (`useAppDispatch`, `useAppSelector`)
-- **Constants**: SCREAMING_SNAKE_CASE for true constants
-- **Types/Interfaces**: PascalCase with descriptive names
+---
 
-### Error Handling
+## 🤖 AI Interaction Guidelines
 
-- Use Zod for runtime validation
-- Environment variables validated via `@t3-oss/env-nextjs`
-- React Query handles async error states
-- **Note**: Only the centralized API client (`src/shared/api`) should be used for requests. **Server Actions (use server) are forbidden.**
-
-### Tailwind CSS
-
-- Use Tailwind classes directly in JSX
-- Use `cn()` utility for conditional class merging
-- Follow prettier-plugin-tailwindcss for class ordering
-- shadcn/ui components in `src/shared/ui/`
-
-## Pre-commit Hooks
-
-Husky runs lint-staged on commit:
-
-- JS/TS files: Prettier format + ESLint fix
-- JSON/MD/CSS files: Prettier format
-
-## Important Notes
-
-- Run `pnpm check` after making changes to verify code quality
-- Comments in code should be avoided unless explicitly requested
-- Use Ukrainian language for UI text (this is a Ukrainian market product)
-- shadcn/ui components configured with aliases pointing to `src/shared/`
+1. **Act as a Senior Peer**: Provide high-signal technical rationale.
+2. **Surgical Changes**: Apply minimal, precise updates following FSD boundaries.
+3. **Validation**: Always run `pnpm check` to verify your changes.
+4. **No Chitchat**: Keep responses professional and concise.

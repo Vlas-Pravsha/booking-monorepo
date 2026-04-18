@@ -13,6 +13,7 @@ export function filterBookings(
     const matchesSearch =
       booking.customerName.toLowerCase().includes(normalizedQuery) ||
       booking.customerPhone?.includes(searchQuery) ||
+      booking.customerEmail?.toLowerCase().includes(normalizedQuery) ||
       booking.table.toLowerCase().includes(normalizedQuery);
 
     const matchesStatus =

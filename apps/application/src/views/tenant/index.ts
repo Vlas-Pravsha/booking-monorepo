@@ -1,0 +1,1 @@
+export { RestaurantBookingPage } from "./booking";

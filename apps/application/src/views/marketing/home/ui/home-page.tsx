@@ -3,8 +3,7 @@
 import dynamic from "next/dynamic";
 import * as React from "react";
 
-import { MarketingFooter } from "@/widgets/marketing-footer";
-import { MarketingHeader } from "@/widgets/marketing-header";
+import { MarketingFooter, MarketingHeader } from "@/widgets/marketing";
 
 import { LandingHero } from "./sections/hero";
 

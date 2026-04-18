@@ -4,21 +4,16 @@ import { ArrowRight, Check, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { buildTenantSiteUrl } from "@/shared/lib/tenant";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 
 interface CompletionStepProps {
-  restaurantName: string;
+  domain: string;
 }
 
-export function CompletionStep({ restaurantName }: CompletionStepProps) {
-  const subdomain =
-    restaurantName
-      .toLowerCase()
-      .replaceAll(/[^a-z0-9\u0430-\u044F]/gu, "-")
-      .replaceAll(/-+/g, "-")
-      .replaceAll(/^-|-$/g, "") || "restaurant";
-  const domain = `${subdomain}.table-reserve.com`;
+export function CompletionStep({ domain }: CompletionStepProps) {
+  const domainUrl = buildTenantSiteUrl(domain);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -41,12 +36,12 @@ export function CompletionStep({ restaurantName }: CompletionStepProps) {
             </p>
             <div className="flex items-center justify-center gap-2">
               <Link
-                href={`https://${domain}`}
+                href={domainUrl}
                 className="text-lg font-bold text-primary hover:underline"
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                {domain}
+                {domainUrl.replace(/^https?:\/\//, "")}
               </Link>
             </div>
             <p className="text-xs text-muted-foreground text-center mt-3">
@@ -90,11 +85,7 @@ export function CompletionStep({ restaurantName }: CompletionStepProps) {
             </Link>
           </Button>
           <Button variant="outline" className="w-full h-12" asChild>
-            <Link
-              href={`https://${domain}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link href={domainUrl} target="_blank" rel="noopener noreferrer">
               Переглянути публічну сторінку
             </Link>
           </Button>
