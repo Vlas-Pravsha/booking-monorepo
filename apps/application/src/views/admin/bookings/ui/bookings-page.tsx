@@ -124,9 +124,6 @@ export function AdminBookingsPage() {
                     Гостей
                   </th>
                   <th className="px-4 pb-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Джерело
-                  </th>
-                  <th className="px-4 pb-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Статус
                   </th>
                   <th className="px-4 pb-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -141,7 +138,7 @@ export function AdminBookingsPage() {
                   ))
                 ) : (
                   <AdminTableEmptyState
-                    colSpan={7}
+                    colSpan={6}
                     message="Бронювань за поточним фільтром не знайдено."
                   />
                 )}

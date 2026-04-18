@@ -1,6 +1,5 @@
 import type { Prisma } from "../../generated/prisma/client.js";
-
-const activeBookingStatuses = ["pending", "confirmed", "seated"] as const;
+import { getActiveBookingStatuses } from "../booking/status";
 
 export const restaurantSummarySelect = {
   domain: true,
@@ -8,7 +7,9 @@ export const restaurantSummarySelect = {
   name: true,
 } satisfies Prisma.RestaurantSelect;
 
-export const adminBookingSelect = {
+export const bookingSelect = {
+  customer: { select: { email: true } },
+  customerEmail: true,
   customerId: true,
   customerName: true,
   customerPhone: true,
@@ -20,20 +21,13 @@ export const adminBookingSelect = {
   source: true,
   startAt: true,
   status: true,
-  table: {
-    select: {
-      id: true,
-      name: true,
-    },
-  },
+  table: { select: { id: true, name: true } },
   totalAmount: true,
 } satisfies Prisma.BookingSelect;
 
-export const adminCustomerSelect = {
+export const customerSelect = {
   bookings: {
-    orderBy: {
-      startAt: "desc",
-    },
+    orderBy: { startAt: "desc" },
     select: {
       isSample: true,
       startAt: true,
@@ -49,17 +43,13 @@ export const adminCustomerSelect = {
   notes: true,
   phone: true,
   tags: {
-    orderBy: {
-      position: "asc",
-    },
-    select: {
-      label: true,
-    },
+    orderBy: { position: "asc" },
+    select: { label: true },
   },
   vip: true,
 } satisfies Prisma.CustomerSelect;
 
-export const adminTableSelect = {
+export const tableSelect = {
   bookings: {
     select: {
       endAt: true,
@@ -67,11 +57,7 @@ export const adminTableSelect = {
       startAt: true,
       status: true,
     },
-    where: {
-      status: {
-        in: [...activeBookingStatuses],
-      },
-    },
+    where: { status: { in: getActiveBookingStatuses() } },
   },
   id: true,
   name: true,
@@ -84,14 +70,14 @@ export type RestaurantSummary = Prisma.RestaurantGetPayload<{
   select: typeof restaurantSummarySelect;
 }>;
 
-export type AdminBookingRecord = Prisma.BookingGetPayload<{
-  select: typeof adminBookingSelect;
+export type BookingRecord = Prisma.BookingGetPayload<{
+  select: typeof bookingSelect;
 }>;
 
-export type AdminCustomerRecord = Prisma.CustomerGetPayload<{
-  select: typeof adminCustomerSelect;
+export type CustomerRecord = Prisma.CustomerGetPayload<{
+  select: typeof customerSelect;
 }>;
 
-export type AdminTableRecord = Prisma.RestaurantTableGetPayload<{
-  select: typeof adminTableSelect;
+export type TableRecord = Prisma.RestaurantTableGetPayload<{
+  select: typeof tableSelect;
 }>;

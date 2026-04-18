@@ -1,6 +1,6 @@
 import type { Prisma } from "../../generated/prisma/client.js";
 
-export const userAuthorizationSelect = {
+export const userSelect = {
   createdAt: true,
   email: true,
   firstName: true,
@@ -12,6 +12,6 @@ export const userAuthorizationSelect = {
   updatedAt: true,
 } satisfies Prisma.UserSelect;
 
-export type UserAuthorizationRecord = Prisma.UserGetPayload<{
-  select: typeof userAuthorizationSelect;
+export type UserRecord = Prisma.UserGetPayload<{
+  select: typeof userSelect;
 }>;

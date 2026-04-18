@@ -1,31 +1,23 @@
-import type {
-  AdminBookingRecord,
-  AdminCustomerRecord,
-  AdminTableRecord,
-} from "./selects";
-import {
-  calculateTableStatus,
-  deriveTableShape,
-  extractTableNumber,
-  formatDisplayDate,
-  formatDisplayTime,
-  getDurationMinutes,
-  isCompletedVisitBooking,
-} from "./utils";
+import { formatISO } from "date-fns";
 
-export const mapBooking = (booking: AdminBookingRecord) => ({
+import { durationMinutes, formatDate, formatTime } from "./date-time";
+import type { BookingRecord, CustomerRecord, TableRecord } from "./queries";
+import { tableNumber, tableShape, tableStatus } from "./table-status";
+
+export const toBooking = (booking: BookingRecord) => ({
+  customerEmail: booking.customerEmail ?? booking.customer?.email ?? undefined,
   customerId: booking.customerId ?? undefined,
   customerName: booking.customerName,
-  customerPhone: booking.customerPhone,
-  date: formatDisplayDate(booking.startAt),
-  duration: getDurationMinutes(booking.startAt, booking.endAt),
-  endAt: booking.endAt.toISOString(),
+  customerPhone: booking.customerPhone ?? "",
+  date: formatDate(booking.startAt),
+  duration: durationMinutes(booking.startAt, booking.endAt),
+  endAt: formatISO(booking.endAt),
   guests: booking.guestCount,
   id: booking.id,
   isSample: booking.isSample,
   note: booking.note,
   source: booking.source as "phone" | "walk-in" | "website",
-  startAt: booking.startAt.toISOString(),
+  startAt: formatISO(booking.startAt),
   status: booking.status as
     | "cancelled"
     | "completed"
@@ -34,30 +26,28 @@ export const mapBooking = (booking: AdminBookingRecord) => ({
     | "seated",
   table: booking.table?.name ?? "Unassigned table",
   tableId: booking.table?.id,
-  time: formatDisplayTime(booking.startAt),
+  time: formatTime(booking.startAt),
   totalAmount: booking.totalAmount,
 });
 
-export const mapCustomer = (customer: AdminCustomerRecord) => {
-  const completedVisits = customer.bookings.filter((booking) =>
-    isCompletedVisitBooking(booking.status)
+export const toCustomer = (customer: CustomerRecord) => {
+  const completedVisits = customer.bookings.filter(
+    (booking) => booking.status === "seated" || booking.status === "completed"
   );
-  const [latestVisit] = completedVisits.toSorted(
-    (left, right) => right.startAt.getTime() - left.startAt.getTime()
+  const [latest] = completedVisits.toSorted(
+    (a, b) => b.startAt.getTime() - a.startAt.getTime()
   );
 
   return {
-    createdAt: customer.createdAt.toISOString(),
+    createdAt: formatISO(customer.createdAt),
     email: customer.email ?? "",
     id: customer.id,
     isSample: customer.isSample,
-    lastVisit: latestVisit
-      ? formatDisplayDate(latestVisit.startAt)
-      : "No visits yet",
-    lastVisitAt: latestVisit?.startAt.toISOString(),
+    lastVisit: latest ? formatDate(latest.startAt) : "Візитів ще немає",
+    lastVisitAt: latest ? formatISO(latest.startAt) : undefined,
     name: customer.name,
     notes: customer.notes,
-    phone: customer.phone,
+    phone: customer.phone ?? "",
     tags: customer.tags.map((tag) => tag.label),
     totalSpent: completedVisits.reduce(
       (sum, booking) => sum + booking.totalAmount,
@@ -68,20 +58,13 @@ export const mapCustomer = (customer: AdminCustomerRecord) => {
   };
 };
 
-export const mapTable = (
-  table: AdminTableRecord,
-  index: number,
-  now: Date
-) => ({
+export const toTable = (table: TableRecord, index: number, now: Date) => ({
   id: table.id,
   isSample: false,
   name: table.name,
-  number: extractTableNumber(table.name, index + 1),
-  position: {
-    x: table.position % 3,
-    y: Math.floor(table.position / 3),
-  },
+  number: tableNumber(table.name, index + 1),
+  position: { x: table.position % 3, y: Math.floor(table.position / 3) },
   seats: table.seats,
-  shape: deriveTableShape(table.seats),
-  status: calculateTableStatus(table.bookings, table.statusOverride, now),
+  shape: tableShape(table.seats),
+  status: tableStatus(table.bookings, table.statusOverride, now),
 });

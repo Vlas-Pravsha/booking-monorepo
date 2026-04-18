@@ -1,5 +1,7 @@
+import { getYear } from "date-fns";
+
 export function AdminFooter() {
-  const year = new Date().getFullYear();
+  const year = getYear(new Date());
 
   return (
     <footer className="mt-auto rounded-xl border bg-card px-5 py-4 shadow-sm">

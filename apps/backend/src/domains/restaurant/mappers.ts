@@ -1,106 +1,67 @@
-import type { RestaurantPublicRecord } from "./read";
+import { formatISO } from "date-fns";
 
-const toOptionalString = (value: string | null): string | undefined =>
-  value ?? undefined;
+import type { RestaurantRecord } from "./queries";
 
-type MenuHighlightRecord = RestaurantPublicRecord["menuHighlights"][number];
-type ReviewRecord = RestaurantPublicRecord["reviews"][number];
-
-const calculateReviewStats = (reviews: RestaurantPublicRecord["reviews"]) => {
-  const reviewCount = reviews.length;
-
-  if (reviewCount === 0) {
-    return {
-      rating: 5,
-      reviewCount,
-    };
+const reviewStats = (reviews: RestaurantRecord["reviews"]) => {
+  if (reviews.length === 0) {
+    return { rating: 5, reviewCount: 0 };
   }
 
-  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
 
   return {
-    rating: Number((totalRating / reviewCount).toFixed(1)),
-    reviewCount,
+    rating: Number((total / reviews.length).toFixed(1)),
+    reviewCount: reviews.length,
   };
 };
 
-const toMenuHighlight = (item: MenuHighlightRecord) => ({
-  description: item.description,
-  id: item.id,
-  image: toOptionalString(item.image),
-  name: item.name,
-  price: item.price,
-});
+export const toPublicRestaurant = (restaurant: RestaurantRecord) => {
+  const { rating, reviewCount } = reviewStats(restaurant.reviews);
 
-const toReview = (review: ReviewRecord) => ({
-  author: review.author,
-  id: review.id,
-  rating: review.rating,
-  text: review.text,
-});
-
-const toSocialLinks = (restaurant: RestaurantPublicRecord) => ({
-  facebook: toOptionalString(restaurant.facebook),
-  instagram: toOptionalString(restaurant.instagram),
-  telegram: toOptionalString(restaurant.telegram),
-});
-
-export const toPublicRestaurant = (restaurant: RestaurantPublicRecord) => {
-  const { rating, reviewCount } = calculateReviewStats(restaurant.reviews);
-
-  const identity = {
-    domain: restaurant.domain,
-    id: restaurant.id,
-    name: restaurant.name,
-  };
-
-  const details = {
+  return {
     address: restaurant.address,
     averageDuration: restaurant.averageDuration,
     closingTime: restaurant.closingTime,
+    createdAt: formatISO(restaurant.createdAt),
     cuisine: restaurant.cuisine,
     description: restaurant.description,
+    domain: restaurant.domain,
+    email: restaurant.email ?? undefined,
+    features: restaurant.features.map((feature) => feature.label),
+    gallery: restaurant.gallery.map((image) => image.image),
+    heroImage: restaurant.heroImage ?? undefined,
+    id: restaurant.id,
+    logo: restaurant.logo ?? undefined,
+    menuHighlights: restaurant.menuHighlights.map((item) => ({
+      description: item.description,
+      id: item.id,
+      image: item.image ?? undefined,
+      name: item.name,
+      price: item.price,
+    })),
+    name: restaurant.name,
     openingTime: restaurant.openingTime,
     phone: restaurant.phone,
     priceRange: restaurant.priceRange,
+    rating,
+    reviewCount,
+    reviews: restaurant.reviews.map((review) => ({
+      author: review.author,
+      id: review.id,
+      rating: review.rating,
+      text: review.text,
+    })),
     shortDescription: restaurant.shortDescription,
-    workHours: restaurant.workHours,
-  };
-
-  const timestamps = {
-    createdAt: restaurant.createdAt.toISOString(),
-    updatedAt: restaurant.updatedAt.toISOString(),
-  };
-
-  const content = {
-    email: toOptionalString(restaurant.email),
-    features: restaurant.features.map((feature) => feature.label),
-    gallery: restaurant.gallery.map((item) => item.image),
-    heroImage: toOptionalString(restaurant.heroImage),
-    logo: toOptionalString(restaurant.logo),
-    menuHighlights: restaurant.menuHighlights.map(toMenuHighlight),
-    socialLinks: toSocialLinks(restaurant),
-  };
-
-  const visibility = {
     showGallery: restaurant.showGallery,
     showMenu: restaurant.showMenu,
     showReviews: restaurant.showReviews,
-  };
-
-  const activity = {
-    rating,
-    reviewCount,
-    reviews: restaurant.reviews.map(toReview),
+    socialLinks: {
+      facebook: restaurant.facebook ?? undefined,
+      instagram: restaurant.instagram ?? undefined,
+      telegram: restaurant.telegram ?? undefined,
+    },
     tables: restaurant.tables,
-  };
-
-  return {
-    ...identity,
-    ...details,
-    ...timestamps,
-    ...content,
-    ...visibility,
-    ...activity,
+    updatedAt: formatISO(restaurant.updatedAt),
+    workHours: restaurant.workHours,
   };
 };

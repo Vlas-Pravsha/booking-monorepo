@@ -4,13 +4,11 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "check": "ultracite check",
-    "check-architecture": "turbo run check-architecture",
-    "check-types": "turbo run check-types",
     "fix": "ultracite fix",
     "up": "pnpm dlx taze major -I -r",
+    "check": "ultracite check",
+    "check-types": "turbo run check-types",
     "react-doctor": "npx -y react-doctor@latest .",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky"
   },
   "devDependencies": {

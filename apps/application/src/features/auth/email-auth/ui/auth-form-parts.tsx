@@ -86,7 +86,11 @@ interface AuthFieldErrorProps {
 }
 
 export function AuthFieldError({ message }: AuthFieldErrorProps) {
-  return <p className="min-h-5 text-xs text-danger">{message}</p>;
+  if (!message) {
+    return null;
+  }
+
+  return <p className="text-xs text-danger">{message}</p>;
 }
 
 interface AuthFormErrorProps {

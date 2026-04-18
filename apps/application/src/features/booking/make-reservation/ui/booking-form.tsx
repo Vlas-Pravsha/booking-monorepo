@@ -5,7 +5,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { useMakeReservation } from "../api/use-make-reservation";
+import { isApiError } from "@/shared/api";
+
+import {
+  useMakeReservation,
+  useReservationAvailability,
+} from "../api/use-make-reservation";
 import { BookingSchema } from "../model/schema";
 import type { BookingFormData } from "../model/schema";
 import { BookingContactsStep } from "./booking-contacts-step";
@@ -15,13 +20,21 @@ import { BookingSuccessState } from "./booking-success-state";
 
 const defaultBookingFormValues = {
   comment: "",
+  email: "",
   guests: 2,
+  phone: "",
+  tableId: "",
 } satisfies Partial<BookingFormData>;
 
-export function BookingForm() {
+interface BookingFormProps {
+  restaurantDomain: string;
+}
+
+export function BookingForm({ restaurantDomain }: BookingFormProps) {
   const [step, setStep] = React.useState<1 | 2>(1);
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
-  const { isPending, isSuccess, mutate, reset } = useMakeReservation();
+  const { isPending, isSuccess, mutate, reset } =
+    useMakeReservation(restaurantDomain);
 
   const {
     register,
@@ -39,6 +52,21 @@ export function BookingForm() {
   const selectedDate = watch("date");
   const selectedTime = watch("time");
   const guestsCount = watch("guests");
+  const selectedTableId = watch("tableId");
+  const availabilityQuery = useReservationAvailability(
+    restaurantDomain,
+    selectedDate,
+    selectedTime,
+    guestsCount
+  );
+
+  React.useEffect(() => {
+    setValue("tableId", "", {
+      shouldDirty: true,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+  }, [guestsCount, selectedDate, selectedTime, setValue]);
 
   const handleBookingReset = React.useCallback(() => {
     reset();
@@ -48,13 +76,20 @@ export function BookingForm() {
   }, [reset, resetForm]);
 
   const handleContinue = React.useCallback(async () => {
-    if (await trigger(["date", "guests", "time"])) {
+    if (await trigger(["date", "guests", "time", "tableId"])) {
       setStep(2);
     }
   }, [trigger]);
 
   const handleBookingSubmit = (data: BookingFormData) => {
     mutate(data, {
+      onError: (error) => {
+        toast.error(
+          isApiError(error)
+            ? error.message
+            : "Не вдалося створити бронювання. Спробуйте ще раз."
+        );
+      },
       onSuccess: () => {
         toast.success("Бронювання успішно створено!");
       },
@@ -76,7 +111,10 @@ export function BookingForm() {
           isCalendarOpen={isCalendarOpen}
           onCalendarOpenChange={setIsCalendarOpen}
           onContinue={handleContinue}
+          availableTables={availabilityQuery.data?.tables ?? []}
+          isLoadingTables={availabilityQuery.isFetching}
           selectedDate={selectedDate}
+          selectedTableId={selectedTableId}
           selectedTime={selectedTime}
           setValue={setValue}
         />

@@ -1,6 +1,6 @@
 import type { Prisma } from "../../generated/prisma/client.js";
 
-export const restaurantPublicSelect = {
+export const restaurantSelect = {
   address: true,
   averageDuration: true,
   closingTime: true,
@@ -11,31 +11,19 @@ export const restaurantPublicSelect = {
   email: true,
   facebook: true,
   features: {
-    orderBy: {
-      position: "asc",
-    },
-    select: {
-      id: true,
-      label: true,
-    },
+    orderBy: { position: "asc" },
+    select: { id: true, label: true },
   },
   gallery: {
-    orderBy: {
-      position: "asc",
-    },
-    select: {
-      id: true,
-      image: true,
-    },
+    orderBy: { position: "asc" },
+    select: { id: true, image: true },
   },
   heroImage: true,
   id: true,
   instagram: true,
   logo: true,
   menuHighlights: {
-    orderBy: {
-      position: "asc",
-    },
+    orderBy: { position: "asc" },
     select: {
       description: true,
       id: true,
@@ -50,35 +38,22 @@ export const restaurantPublicSelect = {
   phone: true,
   priceRange: true,
   reviews: {
-    orderBy: {
-      position: "asc",
-    },
-    select: {
-      author: true,
-      id: true,
-      rating: true,
-      text: true,
-    },
+    orderBy: { position: "asc" },
+    select: { author: true, id: true, rating: true, text: true },
   },
   shortDescription: true,
   showGallery: true,
   showMenu: true,
   showReviews: true,
   tables: {
-    orderBy: {
-      position: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-      seats: true,
-    },
+    orderBy: { position: "asc" },
+    select: { id: true, name: true, seats: true },
   },
   telegram: true,
   updatedAt: true,
   workHours: true,
 } satisfies Prisma.RestaurantSelect;
 
-export type RestaurantPublicRecord = Prisma.RestaurantGetPayload<{
-  select: typeof restaurantPublicSelect;
+export type RestaurantRecord = Prisma.RestaurantGetPayload<{
+  select: typeof restaurantSelect;
 }>;

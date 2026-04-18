@@ -3,59 +3,37 @@ import type {
   CustomerUpdateInput,
   TableStatusOverrideUpdateInput,
 } from "../../contracts";
-import { ApiError } from "../../core/api-error";
+import { ApiError } from "../../core/errors/api-error";
 import type { AppPrismaClient } from "../../core/types";
-import { mapBooking, mapCustomer, mapTable } from "./mappers";
-import type { RestaurantSummary } from "./read";
+import { requireRestaurant } from "./guards";
+import { toBooking, toCustomer, toTable } from "./mappers";
 import {
-  findAdminBookingsByRestaurantId,
-  findAdminCustomersByRestaurantId,
-  findAdminTablesByRestaurantId,
-  findRestaurantForOwner,
+  findBookingsByRestaurant,
+  findCustomersByRestaurant,
+  findRestaurantByOwner,
+  findTablesByRestaurant,
 } from "./read";
 import {
-  hasSampleBooking,
-  hasSampleCustomer,
-  hasSampleTableBooking,
-} from "./utils";
-import {
-  updateAdminBookingStatusById,
-  updateAdminCustomerById,
-  updateAdminTableStatusOverrideById,
+  updateBookingStatus,
+  updateCustomer,
+  updateTableStatusOverride,
 } from "./write";
-
-const requireRestaurantForOwner = async (
-  prisma: AppPrismaClient,
-  ownerId: string
-): Promise<RestaurantSummary> => {
-  const restaurant = await findRestaurantForOwner(prisma, ownerId);
-
-  if (!restaurant) {
-    throw ApiError.notFound("Restaurant not found");
-  }
-
-  return restaurant;
-};
 
 export const getAdminBookings = async (
   prisma: AppPrismaClient,
   ownerId: string
 ) => {
-  const restaurant = await findRestaurantForOwner(prisma, ownerId);
+  const restaurant = await findRestaurantByOwner(prisma, ownerId);
 
   if (!restaurant) {
-    return {
-      bookings: [],
-      hasSampleData: false,
-      restaurant: null,
-    };
+    return { bookings: [], hasSampleData: false, restaurant: null };
   }
 
-  const bookings = await findAdminBookingsByRestaurantId(prisma, restaurant.id);
+  const bookings = await findBookingsByRestaurant(prisma, restaurant.id);
 
   return {
-    bookings: bookings.map(mapBooking),
-    hasSampleData: bookings.some(hasSampleBooking),
+    bookings: bookings.map(toBooking),
+    hasSampleData: bookings.some((b) => b.isSample),
     restaurant,
   };
 };
@@ -66,8 +44,8 @@ export const updateAdminBookingStatus = async (
   bookingId: string,
   input: BookingStatusUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const result = await updateAdminBookingStatusById(
+  const restaurant = await requireRestaurant(prisma, ownerId);
+  const result = await updateBookingStatus(
     prisma,
     restaurant.id,
     bookingId,
@@ -78,33 +56,26 @@ export const updateAdminBookingStatus = async (
     throw ApiError.notFound("Booking not found");
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };
 
 export const getAdminCustomers = async (
   prisma: AppPrismaClient,
   ownerId: string
 ) => {
-  const restaurant = await findRestaurantForOwner(prisma, ownerId);
+  const restaurant = await findRestaurantByOwner(prisma, ownerId);
 
   if (!restaurant) {
-    return {
-      customers: [],
-      hasSampleData: false,
-      restaurant: null,
-    };
+    return { customers: [], hasSampleData: false, restaurant: null };
   }
 
-  const customers = await findAdminCustomersByRestaurantId(
-    prisma,
-    restaurant.id
-  );
+  const customers = await findCustomersByRestaurant(prisma, restaurant.id);
 
   return {
-    customers: customers.map(mapCustomer),
-    hasSampleData: customers.some(hasSampleCustomer),
+    customers: customers.map(toCustomer),
+    hasSampleData: customers.some(
+      (c) => c.isSample || c.bookings.some((b) => b.isSample)
+    ),
     restaurant,
   };
 };
@@ -115,8 +86,8 @@ export const updateAdminCustomer = async (
   customerId: string,
   input: CustomerUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const result = await updateAdminCustomerById(
+  const restaurant = await requireRestaurant(prisma, ownerId);
+  const result = await updateCustomer(
     prisma,
     restaurant.id,
     customerId,
@@ -127,32 +98,26 @@ export const updateAdminCustomer = async (
     throw ApiError.notFound("Customer not found");
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };
 
 export const getAdminTables = async (
   prisma: AppPrismaClient,
   ownerId: string
 ) => {
-  const restaurant = await findRestaurantForOwner(prisma, ownerId);
+  const restaurant = await findRestaurantByOwner(prisma, ownerId);
 
   if (!restaurant) {
-    return {
-      hasSampleData: false,
-      restaurant: null,
-      tables: [],
-    };
+    return { hasSampleData: false, restaurant: null, tables: [] };
   }
 
-  const tables = await findAdminTablesByRestaurantId(prisma, restaurant.id);
+  const tables = await findTablesByRestaurant(prisma, restaurant.id);
   const now = new Date();
 
   return {
-    hasSampleData: tables.some(hasSampleTableBooking),
+    hasSampleData: tables.some((t) => t.bookings.some((b) => b.isSample)),
     restaurant,
-    tables: tables.map((table, index) => mapTable(table, index, now)),
+    tables: tables.map((t, i) => toTable(t, i, now)),
   };
 };
 
@@ -162,8 +127,8 @@ export const updateAdminTableStatusOverride = async (
   tableId: string,
   input: TableStatusOverrideUpdateInput
 ) => {
-  const restaurant = await requireRestaurantForOwner(prisma, ownerId);
-  const result = await updateAdminTableStatusOverrideById(
+  const restaurant = await requireRestaurant(prisma, ownerId);
+  const result = await updateTableStatusOverride(
     prisma,
     restaurant.id,
     tableId,
@@ -174,7 +139,5 @@ export const updateAdminTableStatusOverride = async (
     throw ApiError.notFound("Table not found");
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 };

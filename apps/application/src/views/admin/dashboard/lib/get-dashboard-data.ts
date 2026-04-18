@@ -1,3 +1,4 @@
+import { format, isAfter, isBefore, parseISO, set } from "date-fns";
 import { AlertCircle, CalendarDays, Clock, Users } from "lucide-react";
 
 import type { Booking } from "@/entities/booking";
@@ -23,10 +24,10 @@ const isOverlappingSlot = (
   slotStart: Date,
   slotEnd: Date
 ): boolean => {
-  const bookingStart = new Date(booking.startAt);
-  const bookingEnd = new Date(booking.endAt);
+  const bookingStart = parseISO(booking.startAt);
+  const bookingEnd = parseISO(booking.endAt);
 
-  return bookingStart < slotEnd && bookingEnd > slotStart;
+  return isBefore(bookingStart, slotEnd) && isAfter(bookingEnd, slotStart);
 };
 
 export const buildDashboardStatItems = (
@@ -109,10 +110,18 @@ export const buildOccupancySlots = (
   const totalTables = Math.max(1, tables.length);
 
   return SLOT_RANGES.map(({ endHour, startHour }) => {
-    const slotStart = new Date(now);
-    slotStart.setHours(startHour, 0, 0, 0);
-    const slotEnd = new Date(now);
-    slotEnd.setHours(endHour, 0, 0, 0);
+    const slotStart = set(now, {
+      hours: startHour,
+      milliseconds: 0,
+      minutes: 0,
+      seconds: 0,
+    });
+    const slotEnd = set(now, {
+      hours: endHour,
+      milliseconds: 0,
+      minutes: 0,
+      seconds: 0,
+    });
 
     const matchingBookings = bookings.filter((booking) =>
       isOverlappingSlot(booking, slotStart, slotEnd)
@@ -128,7 +137,7 @@ export const buildOccupancySlots = (
     return {
       bookings: matchingBookings.length,
       fill,
-      time: `${String(startHour).padStart(2, "0")}:00 - ${String(endHour).padStart(2, "0")}:00`,
+      time: `${format(slotStart, "HH:mm")} - ${format(slotEnd, "HH:mm")}`,
     };
   });
 };

@@ -31,12 +31,11 @@ Important current nuance:
 ## Hard Requirements
 
 1. Keep frontend and backend aligned. If a feature needs persistent data or a real workflow, do not stop at UI-only changes.
-2. Do not run Docker commands. This repo uses Prisma + SQLite locally; container orchestration is not part of the workflow here.
-3. Treat `apps/*` as the source of truth. Some top-level docs are older than the current implementation.
-4. All user-facing UI copy must stay in Ukrainian unless the task explicitly says otherwise.
-5. Use strict TypeScript. Avoid `any`, avoid unsafe casts, and prefer explicit types when they clarify intent.
-6. Do not edit generated Prisma client files in `apps/backend/src/generated/prisma` manually.
-7. Run validation before finishing work. There is no established test suite yet, so at minimum run the relevant typecheck/build commands.
+2. Treat `apps/*` as the source of truth. Some top-level docs are older than the current implementation.
+3. All user-facing UI copy must stay in Ukrainian unless the task explicitly says otherwise.
+4. Use strict TypeScript. Avoid `any`, avoid unsafe casts, and prefer explicit types when they clarify intent.
+5. Do not edit generated Prisma client files in `apps/backend/src/generated/prisma` manually.
+6. Run validation before finishing work. There is no established test suite yet, so at minimum run the relevant typecheck/build commands.
 
 ## Prompting Expectations For This Repo
 
@@ -44,7 +43,7 @@ When working in this repository, always make the task explicit in four parts whe
 
 - Goal - what feature, fix, or refactor is being requested
 - Context - which apps, routes, docs, errors, or files matter
-- Constraints - architecture rules, multi-tenant rules, Ukrainian UI copy, no Docker, generated-file boundaries
+- Constraints - architecture rules, multi-tenant rules, Ukrainian UI copy, generated-file boundaries
 - Done when - which commands passed and what user-visible behavior changed
 
 For review tasks, also load `code_review.md`.

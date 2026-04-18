@@ -1,3 +1,5 @@
+import { formatISO } from "date-fns";
+
 import type { ContactRequestInput } from "../../contracts/zod/public";
 import type { PrismaExecutor } from "../../core/types";
 import type { RequestMeta } from "../../lib/http/request-meta";
@@ -18,7 +20,7 @@ export const createMarketingContactRequest = async (
   });
 
   return {
-    submittedAt: contactRequest.createdAt.toISOString(),
+    submittedAt: formatISO(contactRequest.createdAt),
     success: true as const,
   };
 };

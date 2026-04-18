@@ -4,8 +4,8 @@ import { Check, MoreHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Booking } from "@/entities/booking";
-import { useUpdateBookingStatusMutation } from "@/entities/booking";
 import { useAuthAccessToken } from "@/features/auth/session";
+import { useUpdateBookingStatusMutation } from "@/features/booking/update-status";
 import { isApiError } from "@/shared/api";
 import { semanticToneStyles } from "@/shared/config";
 import { Button } from "@/shared/ui/button";

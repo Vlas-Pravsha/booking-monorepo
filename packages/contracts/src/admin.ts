@@ -36,9 +36,10 @@ export const tableStatusOverrideUpdateInputSchema = z.object({
 });
 
 export const bookingSchema = z.object({
+  customerEmail: z.string().optional(),
   customerId: z.string().trim().min(1).optional(),
   customerName: z.string().min(1),
-  customerPhone: z.string().min(1),
+  customerPhone: z.string(),
   date: z.string().min(1),
   duration: z.number().int().min(0),
   endAt: z.string().min(1),
@@ -70,7 +71,7 @@ export const customerSchema = z.object({
   lastVisitAt: z.string().min(1).optional(),
   name: z.string().min(1),
   notes: z.string(),
-  phone: z.string().min(1),
+  phone: z.string(),
   tags: z.array(z.string()),
   totalSpent: z.number().min(0),
   vip: z.boolean(),

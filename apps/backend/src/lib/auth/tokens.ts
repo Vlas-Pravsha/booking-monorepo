@@ -1,7 +1,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import { z } from "zod";
 
-import { ApiError, isApiError } from "../../core/api-error";
+import { ApiError, isApiError } from "../../core/errors/api-error";
 import { env } from "../env";
 
 const TOKEN_HEADER = {

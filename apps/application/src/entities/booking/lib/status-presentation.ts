@@ -21,20 +21,3 @@ export function getBookingStatusBadgeClass(status: Booking["status"]): string {
 export function getBookingStatusLabel(status: Booking["status"]): string {
   return bookingStatusConfig[status].label;
 }
-
-export function getBookingSourceLabel(source?: Booking["source"]): string {
-  switch (source) {
-    case "website": {
-      return "Сайт";
-    }
-    case "phone": {
-      return "Телефон";
-    }
-    case "walk-in": {
-      return "Відвідувач";
-    }
-    default: {
-      return "Невідомо";
-    }
-  }
-}

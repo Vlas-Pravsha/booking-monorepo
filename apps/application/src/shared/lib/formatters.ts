@@ -1,3 +1,14 @@
+import { tz } from "@date-fns/tz";
+import { format, isDate, parseISO } from "date-fns";
+import { uk } from "date-fns/locale";
+
+const APP_TIME_ZONE = "Europe/Kyiv";
+const appDateFormatOptions = { in: tz(APP_TIME_ZONE) } as const;
+
+function toDate(value: Date | string) {
+  return isDate(value) ? value : parseISO(value);
+}
+
 export function getInitials(name: string) {
   return name
     .split(" ")
@@ -15,32 +26,21 @@ export function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-const APP_TIME_ZONE = "Europe/Kyiv";
-
 export function getLocalDateKey(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    day: "2-digit",
-    month: "2-digit",
-    timeZone: APP_TIME_ZONE,
-    year: "numeric",
-  }).formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
-  const month = parts.find((part) => part.type === "month")?.value ?? "00";
-  const day = parts.find((part) => part.type === "day")?.value ?? "00";
-
-  return `${year}-${month}-${day}`;
+  return format(toDate(value), "yyyy-MM-dd", appDateFormatOptions);
 }
 
 export function getLocalMonthKey(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    month: "2-digit",
-    timeZone: APP_TIME_ZONE,
-    year: "numeric",
-  }).formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value ?? "0000";
-  const month = parts.find((part) => part.type === "month")?.value ?? "00";
+  return format(toDate(value), "yyyy-MM", appDateFormatOptions);
+}
 
-  return `${year}-${month}`;
+export function formatBookingDatetime(startAt: string, endAt: string) {
+  const start = parseISO(startAt);
+  const end = parseISO(endAt);
+
+  const date = format(start, "d MMM yyyy", { locale: uk });
+  const startTime = format(start, "HH:mm");
+  const endTime = format(end, "HH:mm");
+
+  return { date, range: `${startTime} – ${endTime}` };
 }

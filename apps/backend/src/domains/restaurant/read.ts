@@ -1,28 +1,22 @@
 import type { AppPrismaClient } from "../../core/types";
-import { restaurantPublicSelect } from "../../database/selects/restaurant";
+import { restaurantSelect } from "./queries";
+import type { RestaurantRecord } from "./queries";
 
-export type { RestaurantPublicRecord } from "../../database/selects/restaurant";
+export type { RestaurantRecord };
 
 export const findRestaurantByDomain = (
   prisma: AppPrismaClient,
   domain: string
-) =>
-  prisma.restaurant.findUnique({
-    select: restaurantPublicSelect,
-    where: {
-      domain,
-    },
-  });
+): Promise<RestaurantRecord | null> =>
+  prisma.restaurant.findUnique({ select: restaurantSelect, where: { domain } });
 
 export const findRestaurantByOwnerId = (
   prisma: AppPrismaClient,
   ownerId: string
-) =>
+): Promise<RestaurantRecord | null> =>
   prisma.restaurant.findUnique({
-    select: restaurantPublicSelect,
-    where: {
-      ownerId,
-    },
+    select: restaurantSelect,
+    where: { ownerId },
   });
 
 export const findRestaurantByDomainForOwnerCheck = (
@@ -30,12 +24,6 @@ export const findRestaurantByDomainForOwnerCheck = (
   domain: string
 ) =>
   prisma.restaurant.findUnique({
-    select: {
-      domain: true,
-      id: true,
-      ownerId: true,
-    },
-    where: {
-      domain,
-    },
+    select: { domain: true, id: true, ownerId: true },
+    where: { domain },
   });

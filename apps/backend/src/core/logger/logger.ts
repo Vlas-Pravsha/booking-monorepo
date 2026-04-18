@@ -1,6 +1,6 @@
 import pino from "pino";
 
-import { env } from "../lib/env";
+import { env } from "../../lib/env";
 
 export const logger = pino({
   base: undefined,

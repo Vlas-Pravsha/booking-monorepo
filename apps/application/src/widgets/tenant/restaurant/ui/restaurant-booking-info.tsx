@@ -85,7 +85,7 @@ export function RestaurantBookingInfo({
                 <div className="absolute -bottom-8 -right-6 h-36 w-36 rounded-full bg-white/5 blur-3xl" />
 
                 <div className="relative rounded-[2.25rem] border border-white/10 bg-[#0c0c0e]/88 p-6 shadow-[0_36px_80px_-48px_rgba(0,0,0,0.95)] backdrop-blur-xl lg:p-10">
-                  <BookingForm />
+                  <BookingForm restaurantDomain={restaurant.domain} />
                 </div>
               </div>
             </div>

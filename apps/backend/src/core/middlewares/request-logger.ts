@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from "hono";
 
-import { logger } from "../logger";
+import { logger } from "../logger/logger";
 import type { RequestContextVariables } from "../types";
 
 const HEALTH_CHECK_PATHS = new Set(["/health", "/healthz", "/ready"]);

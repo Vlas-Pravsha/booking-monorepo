@@ -1,3 +1,5 @@
+import { formatISO } from "date-fns";
+
 import { logger } from "../../core/logger";
 
 export interface PasswordResetNotificationPayload {
@@ -12,7 +14,7 @@ export const sendPasswordResetNotification = (
   logger.info(
     {
       email: payload.email,
-      expiresAt: payload.expiresAt.toISOString(),
+      expiresAt: formatISO(payload.expiresAt),
       resetUrl: payload.resetUrl,
     },
     "Password reset link generated"

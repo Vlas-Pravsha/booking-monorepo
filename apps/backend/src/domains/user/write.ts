@@ -1,188 +1,129 @@
 import { randomUUID } from "node:crypto";
 
+import { addDays } from "date-fns";
+
 import type { PrismaExecutor } from "../../core/types";
-import { userAuthorizationSelect } from "../../database/selects/user";
 import { hashToken } from "../../lib/auth/token-hash";
 import { issueAccessToken, issueRefreshToken } from "../../lib/auth/tokens";
 import { env } from "../../lib/env";
 import type { RequestMeta } from "../../lib/http/request-meta";
-import type { AuthUser } from "./read";
+import { userSelect } from "./queries";
+import type { UserRecord } from "./queries";
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const sessionExpiry = (): Date =>
+  addDays(new Date(), env.REFRESH_TOKEN_TTL_DAYS);
 
-const createSessionExpiry = (): Date => {
-  const expiresAt = Date.now() + DAY_IN_MS * env.REFRESH_TOKEN_TTL_DAYS;
-  return new Date(expiresAt);
-};
-
-export const createAuthUser = (input: {
-  prisma: PrismaExecutor;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  passwordHash: string;
-}): Promise<AuthUser> =>
-  input.prisma.user.create({
-    data: {
-      email: input.email,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      passwordHash: input.passwordHash,
-    },
-    select: userAuthorizationSelect,
-  });
-
-export const createSessionForUser = async (
+export const createUser = (
   prisma: PrismaExecutor,
-  authUser: AuthUser,
+  input: {
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    passwordHash: string;
+  }
+): Promise<UserRecord> =>
+  prisma.user.create({ data: input, select: userSelect });
+
+export const createSession = async (
+  prisma: PrismaExecutor,
+  user: UserRecord,
   meta: RequestMeta
 ) => {
   const sessionId = randomUUID();
 
-  const refreshToken = await issueRefreshToken({
-    sessionId,
-    userId: authUser.id,
-  });
-
-  const accessToken = await issueAccessToken({
-    email: authUser.email,
-    sessionId,
-    userId: authUser.id,
-  });
+  const [refreshToken, accessToken] = await Promise.all([
+    issueRefreshToken({ sessionId, userId: user.id }),
+    issueAccessToken({ email: user.email, sessionId, userId: user.id }),
+  ]);
 
   await prisma.authSession.create({
     data: {
-      expiresAt: createSessionExpiry(),
+      expiresAt: sessionExpiry(),
       id: sessionId,
       ipAddress: meta.ipAddress,
       refreshTokenHash: hashToken(refreshToken),
       userAgent: meta.userAgent,
-      userId: authUser.id,
+      userId: user.id,
     },
   });
 
   await prisma.user.update({
-    data: {
-      lastLoginAt: new Date(),
-    },
-    where: {
-      id: authUser.id,
-    },
+    data: { lastLoginAt: new Date() },
+    where: { id: user.id },
   });
 
-  return {
-    accessToken,
-    refreshToken,
-  };
+  return { accessToken, refreshToken };
 };
 
-export const rotateSessionTokens = async (
+export const rotateSession = async (
   prisma: PrismaExecutor,
   session: { id: string },
-  authUser: AuthUser,
+  user: UserRecord,
   meta: RequestMeta
 ) => {
-  const nextRefreshToken = await issueRefreshToken({
-    sessionId: session.id,
-    userId: authUser.id,
-  });
-
-  const nextAccessToken = await issueAccessToken({
-    email: authUser.email,
-    sessionId: session.id,
-    userId: authUser.id,
-  });
+  const [nextRefreshToken, nextAccessToken] = await Promise.all([
+    issueRefreshToken({ sessionId: session.id, userId: user.id }),
+    issueAccessToken({
+      email: user.email,
+      sessionId: session.id,
+      userId: user.id,
+    }),
+  ]);
 
   await prisma.authSession.update({
     data: {
-      expiresAt: createSessionExpiry(),
+      expiresAt: sessionExpiry(),
       ipAddress: meta.ipAddress,
       refreshTokenHash: hashToken(nextRefreshToken),
       revokedAt: null,
       userAgent: meta.userAgent,
     },
-    where: {
-      id: session.id,
-    },
+    where: { id: session.id },
   });
 
-  return {
-    nextAccessToken,
-    nextRefreshToken,
-  };
+  return { accessToken: nextAccessToken, refreshToken: nextRefreshToken };
 };
 
-export const revokeSessionByRefreshTokenId = async (
+export const revokeSession = (
   prisma: PrismaExecutor,
   sessionId: string
-): Promise<void> => {
-  await prisma.authSession.updateMany({
-    data: {
-      revokedAt: new Date(),
-    },
-    where: {
-      id: sessionId,
-      revokedAt: null,
-    },
+): Promise<unknown> =>
+  prisma.authSession.updateMany({
+    data: { revokedAt: new Date() },
+    where: { id: sessionId, revokedAt: null },
   });
-};
 
-export const createPasswordResetTokenRecord = (
+export const createPasswordResetToken = (
   prisma: PrismaExecutor,
-  input: {
-    expiresAt: Date;
-    tokenHash: string;
-    userId: string;
-  }
-) =>
-  prisma.passwordResetToken.create({
-    data: {
-      expiresAt: input.expiresAt,
-      tokenHash: input.tokenHash,
-      userId: input.userId,
-    },
-  });
+  input: { expiresAt: Date; tokenHash: string; userId: string }
+) => prisma.passwordResetToken.create({ data: input });
 
-export const invalidateActivePasswordResetTokensForUser = (
+export const invalidatePasswordResetTokens = (
   prisma: PrismaExecutor,
   userId: string,
   usedAt: Date
 ) =>
   prisma.passwordResetToken.updateMany({
-    data: {
-      usedAt,
-    },
-    where: {
-      usedAt: null,
-      userId,
-    },
+    data: { usedAt },
+    where: { usedAt: null, userId },
   });
 
-export const revokeActiveSessionsForUser = (
+export const revokeUserSessions = (
   prisma: PrismaExecutor,
   userId: string,
   revokedAt: Date
 ) =>
   prisma.authSession.updateMany({
-    data: {
-      revokedAt,
-    },
-    where: {
-      revokedAt: null,
-      userId,
-    },
+    data: { revokedAt },
+    where: { revokedAt: null, userId },
   });
 
-export const updateUserPasswordHash = (
+export const updatePasswordHash = (
   prisma: PrismaExecutor,
   userId: string,
   passwordHash: string
 ) =>
   prisma.user.update({
-    data: {
-      passwordHash,
-    },
-    where: {
-      id: userId,
-    },
+    data: { passwordHash },
+    where: { id: userId },
   });

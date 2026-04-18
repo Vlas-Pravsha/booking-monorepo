@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from "hono";
 
 import { verifyAccessToken } from "../../lib/auth/tokens";
-import { ApiError } from "../api-error";
+import { ApiError } from "../errors/api-error";
 import type { RequestContextVariables } from "../types";
 
 const parseBearerToken = (headerValue: string | undefined): string | null => {

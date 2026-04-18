@@ -29,7 +29,6 @@
     }
   },
   "scripts": {
-    "build": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "dev": "tsc --noEmit --watch"
   },

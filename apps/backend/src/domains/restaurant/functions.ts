@@ -1,17 +1,19 @@
 import type { RestaurantUpsertInput } from "../../contracts/zod/restaurant";
-import { ApiError } from "../../core/api-error";
+import { ApiError } from "../../core/errors/api-error";
 import type { AppPrismaClient } from "../../core/types";
 import { toPublicRestaurant } from "./mappers";
 import { findRestaurantByDomain, findRestaurantByOwnerId } from "./read";
 import { normalizeDomain } from "./utils";
-import { upsertRestaurantForOwner as upsertRestaurantRecord } from "./write";
+import { upsertRestaurant } from "./write";
 
 export const getRestaurantByDomain = async (
   prisma: AppPrismaClient,
   domain: string
 ) => {
-  const normalizedDomain = normalizeDomain(domain);
-  const restaurant = await findRestaurantByDomain(prisma, normalizedDomain);
+  const restaurant = await findRestaurantByDomain(
+    prisma,
+    normalizeDomain(domain)
+  );
 
   if (!restaurant) {
     throw ApiError.notFound("Restaurant not found");
@@ -25,16 +27,11 @@ export const getRestaurantForOwner = async (
   ownerId: string
 ) => {
   const restaurant = await findRestaurantByOwnerId(prisma, ownerId);
-
-  if (!restaurant) {
-    return null;
-  }
-
-  return toPublicRestaurant(restaurant);
+  return restaurant ? toPublicRestaurant(restaurant) : null;
 };
 
 export const upsertRestaurantForOwner = async (
   prisma: AppPrismaClient,
   ownerId: string,
   input: RestaurantUpsertInput
-) => toPublicRestaurant(await upsertRestaurantRecord(prisma, ownerId, input));
+) => toPublicRestaurant(await upsertRestaurant(prisma, ownerId, input));

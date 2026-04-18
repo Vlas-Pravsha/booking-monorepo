@@ -1,60 +1,53 @@
 import type { AppPrismaClient } from "../../core/types";
 import {
-  adminBookingSelect,
-  adminCustomerSelect,
-  adminTableSelect,
+  bookingSelect,
+  customerSelect,
   restaurantSummarySelect,
-} from "./selects";
+  tableSelect,
+} from "./queries";
 
-export type { RestaurantSummary } from "./selects";
+export type {
+  RestaurantSummary,
+  BookingRecord,
+  CustomerRecord,
+  TableRecord,
+} from "./queries";
 
-export const findRestaurantForOwner = (
+export const findRestaurantByOwner = (
   prisma: AppPrismaClient,
   ownerId: string
 ) =>
   prisma.restaurant.findUnique({
     select: restaurantSummarySelect,
-    where: {
-      ownerId,
-    },
+    where: { ownerId },
   });
 
-export const findAdminBookingsByRestaurantId = (
+export const findBookingsByRestaurant = (
   prisma: AppPrismaClient,
   restaurantId: string
 ) =>
   prisma.booking.findMany({
-    orderBy: {
-      startAt: "desc",
-    },
-    select: adminBookingSelect,
-    where: {
-      restaurantId,
-    },
+    orderBy: { startAt: "desc" },
+    select: bookingSelect,
+    where: { restaurantId },
   });
 
-export const findAdminCustomersByRestaurantId = (
+export const findCustomersByRestaurant = (
   prisma: AppPrismaClient,
   restaurantId: string
 ) =>
   prisma.customer.findMany({
     orderBy: [{ vip: "desc" }, { createdAt: "desc" }],
-    select: adminCustomerSelect,
-    where: {
-      restaurantId,
-    },
+    select: customerSelect,
+    where: { restaurantId },
   });
 
-export const findAdminTablesByRestaurantId = (
+export const findTablesByRestaurant = (
   prisma: AppPrismaClient,
   restaurantId: string
 ) =>
   prisma.restaurantTable.findMany({
-    orderBy: {
-      position: "asc",
-    },
-    select: adminTableSelect,
-    where: {
-      restaurantId,
-    },
+    orderBy: { position: "asc" },
+    select: tableSelect,
+    where: { restaurantId },
   });

@@ -1,3 +1,5 @@
+import { formatISO } from "date-fns";
+
 import type { AppPrismaClient } from "../../core/types";
 import { checkDatabaseHealth } from "./read";
 
@@ -15,7 +17,7 @@ export const getReadinessHealth = async (prisma: AppPrismaClient) => {
     body: {
       services: { db },
       status: db.status,
-      timestamp: new Date().toISOString(),
+      timestamp: formatISO(new Date()),
     },
     statusCode,
   };

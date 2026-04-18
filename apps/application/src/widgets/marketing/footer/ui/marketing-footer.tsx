@@ -1,3 +1,4 @@
+import { getYear } from "date-fns";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 import Link from "next/link";
 
@@ -22,7 +23,7 @@ const SOCIAL_LINKS = [
 ] as const;
 
 export function MarketingFooter() {
-  const year = new Date().getFullYear();
+  const year = getYear(new Date());
 
   return (
     <footer className="border-t bg-muted/30 py-16 lg:py-24">

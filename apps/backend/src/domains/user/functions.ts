@@ -1,12 +1,14 @@
 import { randomBytes } from "node:crypto";
 
+import { addMinutes, formatISO, isPast } from "date-fns";
+
 import type {
   ForgotPasswordInput,
   LoginInput,
   RegisterInput,
   ResetPasswordInput,
 } from "../../contracts/zod/auth";
-import { ApiError } from "../../core/api-error";
+import { ApiError } from "../../core/errors/api-error";
 import type { AppPrismaClient } from "../../core/types";
 import { hashPassword, verifyPassword } from "../../lib/auth/password";
 import { hashToken } from "../../lib/auth/token-hash";
@@ -14,104 +16,76 @@ import { verifyRefreshToken } from "../../lib/auth/tokens";
 import { env } from "../../lib/env";
 import type { RequestMeta } from "../../lib/http/request-meta";
 import { sendPasswordResetNotification } from "../../lib/notifications/password-reset";
-import { toPublicUser } from "./mappers";
+import type { UserRecord } from "./queries";
 import {
   findPasswordResetTokenByHash,
   findSessionById,
-  findUserByEmailForAuth,
-  findUserByIdForAuth,
+  findUserByEmail,
+  findUserById,
 } from "./read";
-import type { AuthUser } from "./read";
 import {
-  createPasswordResetTokenRecord,
-  createAuthUser,
-  createSessionForUser,
-  invalidateActivePasswordResetTokensForUser,
-  revokeActiveSessionsForUser,
-  revokeSessionByRefreshTokenId,
-  rotateSessionTokens,
-  updateUserPasswordHash,
+  createPasswordResetToken,
+  createSession,
+  createUser,
+  invalidatePasswordResetTokens,
+  rotateSession,
+  revokeSession,
+  revokeUserSessions,
+  updatePasswordHash,
 } from "./write";
 
-const requireActiveUser = (user: AuthUser): void => {
+const toPublicUser = (user: UserRecord) => ({
+  createdAt: formatISO(user.createdAt),
+  email: user.email,
+  firstName: user.firstName,
+  id: user.id,
+  lastLoginAt: user.lastLoginAt ? formatISO(user.lastLoginAt) : null,
+  lastName: user.lastName,
+  status: user.status,
+  updatedAt: formatISO(user.updatedAt),
+});
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const requireActiveUser = (user: UserRecord): void => {
   if (user.status !== "ACTIVE") {
     throw ApiError.forbidden("User is not active");
   }
 };
 
-const normalizeEmail = (email: string): string => email.trim().toLowerCase();
-
-const createPasswordResetExpiry = (): Date =>
-  new Date(Date.now() + env.PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000);
-
-const createPasswordResetUrl = (token: string): string =>
-  new URL(
-    `/reset-password?token=${encodeURIComponent(token)}`,
-    env.APP_BASE_URL
-  ).toString();
-
-const ensureEmailAvailable = async (
-  prisma: AppPrismaClient,
-  normalizedEmail: string
-): Promise<void> => {
-  const existingUser = await findUserByEmailForAuth(prisma, normalizedEmail);
-
-  if (existingUser) {
-    throw ApiError.conflict("User with this email already exists");
-  }
-};
-
-const requireAuthUserById = async (
-  prisma: AppPrismaClient,
-  userId: string,
-  error: ApiError
-): Promise<AuthUser> => {
-  const authUser = await findUserByIdForAuth(prisma, userId);
-
-  if (!authUser) {
-    throw error;
-  }
-
-  return authUser;
-};
-
 const authenticateUser = async (
   prisma: AppPrismaClient,
   input: LoginInput
-): Promise<AuthUser> => {
-  const normalizedEmail = normalizeEmail(input.email);
-  const authUser = await findUserByEmailForAuth(prisma, normalizedEmail);
+): Promise<UserRecord> => {
+  const user = await findUserByEmail(prisma, normalizeEmail(input.email));
 
-  if (!authUser) {
+  if (!user) {
     throw ApiError.unauthorized("Invalid credentials");
   }
 
-  requireActiveUser(authUser);
+  requireActiveUser(user);
 
-  const isPasswordValid = await verifyPassword(
-    authUser.passwordHash,
-    input.password
-  );
+  const passwordValid = await verifyPassword(user.passwordHash, input.password);
 
-  if (!isPasswordValid) {
+  if (!passwordValid) {
     throw ApiError.unauthorized("Invalid credentials");
   }
 
-  return authUser;
+  return user;
 };
 
-const validateRefreshSession = async (
+const validateSession = async (
   prisma: AppPrismaClient,
   refreshToken: string
 ) => {
-  const refreshPayload = await verifyRefreshToken(refreshToken);
-  const session = await findSessionById(prisma, refreshPayload.sessionId);
+  const payload = await verifyRefreshToken(refreshToken);
+  const session = await findSessionById(prisma, payload.sessionId);
 
-  if (!session || session.userId !== refreshPayload.userId) {
+  if (!session || session.userId !== payload.userId) {
     throw ApiError.unauthorized("Invalid session");
   }
 
-  if (session.revokedAt || session.expiresAt <= new Date()) {
+  if (session.revokedAt || isPast(session.expiresAt)) {
     throw ApiError.unauthorized("Session expired or revoked");
   }
 
@@ -119,7 +93,7 @@ const validateRefreshSession = async (
     throw ApiError.unauthorized("Invalid session token");
   }
 
-  return { refreshPayload, session };
+  return { payload, session };
 };
 
 export const registerUser = async (
@@ -127,30 +101,24 @@ export const registerUser = async (
   input: RegisterInput,
   meta: RequestMeta
 ) => {
-  const normalizedEmail = normalizeEmail(input.email);
+  const email = normalizeEmail(input.email);
+  const existing = await findUserByEmail(prisma, email);
 
-  await ensureEmailAvailable(prisma, normalizedEmail);
+  if (existing) {
+    throw ApiError.conflict("User with this email already exists");
+  }
 
   const passwordHash = await hashPassword(input.password);
-  const authUser = await createAuthUser({
-    email: normalizedEmail,
+  const user = await createUser(prisma, {
+    email,
     firstName: input.firstName ?? null,
     lastName: input.lastName ?? null,
     passwordHash,
-    prisma,
   });
 
-  const { accessToken, refreshToken } = await createSessionForUser(
-    prisma,
-    authUser,
-    meta
-  );
+  const { accessToken, refreshToken } = await createSession(prisma, user, meta);
 
-  return {
-    accessToken,
-    refreshToken,
-    user: toPublicUser(authUser),
-  };
+  return { accessToken, refreshToken, user: toPublicUser(user) };
 };
 
 export const loginUser = async (
@@ -158,19 +126,10 @@ export const loginUser = async (
   input: LoginInput,
   meta: RequestMeta
 ) => {
-  const authUser = await authenticateUser(prisma, input);
+  const user = await authenticateUser(prisma, input);
+  const { accessToken, refreshToken } = await createSession(prisma, user, meta);
 
-  const { accessToken, refreshToken } = await createSessionForUser(
-    prisma,
-    authUser,
-    meta
-  );
-
-  return {
-    accessToken,
-    refreshToken,
-    user: toPublicUser(authUser),
-  };
+  return { accessToken, refreshToken, user: toPublicUser(user) };
 };
 
 export const refreshSession = async (
@@ -178,29 +137,22 @@ export const refreshSession = async (
   refreshToken: string,
   meta: RequestMeta
 ) => {
-  const { refreshPayload, session } = await validateRefreshSession(
-    prisma,
-    refreshToken
-  );
-  const authUser = await requireAuthUserById(
-    prisma,
-    refreshPayload.userId,
-    ApiError.unauthorized("User not found")
-  );
+  const { payload, session } = await validateSession(prisma, refreshToken);
+  const user = await findUserById(prisma, payload.userId);
 
-  requireActiveUser(authUser);
+  if (!user) {
+    throw ApiError.unauthorized("User not found");
+  }
 
-  const { nextAccessToken, nextRefreshToken } = await rotateSessionTokens(
-    prisma,
-    session,
-    authUser,
-    meta
-  );
+  requireActiveUser(user);
+
+  const { accessToken: nextAccessToken, refreshToken: nextRefreshToken } =
+    await rotateSession(prisma, session, user, meta);
 
   return {
     accessToken: nextAccessToken,
     refreshToken: nextRefreshToken,
-    user: toPublicUser(authUser),
+    user: toPublicUser(user),
   };
 };
 
@@ -209,10 +161,10 @@ export const logoutWithRefreshToken = async (
   refreshToken: string
 ): Promise<void> => {
   try {
-    const refreshPayload = await verifyRefreshToken(refreshToken);
-    await revokeSessionByRefreshTokenId(prisma, refreshPayload.sessionId);
+    const payload = await verifyRefreshToken(refreshToken);
+    await revokeSession(prisma, payload.sessionId);
   } catch {
-    // Logout must be idempotent for clients.
+    // Logout is idempotent — ignore invalid tokens.
   }
 };
 
@@ -220,91 +172,76 @@ export const getCurrentUser = async (
   prisma: AppPrismaClient,
   userId: string
 ) => {
-  const authUser = await findUserByIdForAuth(prisma, userId);
+  const user = await findUserById(prisma, userId);
 
-  if (!authUser) {
+  if (!user) {
     throw ApiError.notFound("User not found");
   }
 
-  return {
-    user: toPublicUser(authUser),
-  };
+  return { user: toPublicUser(user) };
 };
 
 export const requestPasswordRecovery = async (
   prisma: AppPrismaClient,
   input: ForgotPasswordInput
 ) => {
-  const normalizedEmail = normalizeEmail(input.email);
-  const authUser = await findUserByEmailForAuth(prisma, normalizedEmail);
+  const email = normalizeEmail(input.email);
+  const user = await findUserByEmail(prisma, email);
 
-  if (authUser && authUser.status === "ACTIVE") {
+  if (user?.status === "ACTIVE") {
     const rawToken = randomBytes(32).toString("hex");
-    const expiresAt = createPasswordResetExpiry();
-    const requestedAt = new Date();
-
-    await invalidateActivePasswordResetTokensForUser(
-      prisma,
-      authUser.id,
-      requestedAt
+    const expiresAt = addMinutes(
+      new Date(),
+      env.PASSWORD_RESET_TOKEN_TTL_MINUTES
     );
-    await createPasswordResetTokenRecord(prisma, {
+    const now = new Date();
+    const resetUrl = new URL(
+      `/reset-password?token=${encodeURIComponent(rawToken)}`,
+      env.APP_BASE_URL
+    ).toString();
+
+    await invalidatePasswordResetTokens(prisma, user.id, now);
+    await createPasswordResetToken(prisma, {
       expiresAt,
       tokenHash: hashToken(rawToken),
-      userId: authUser.id,
+      userId: user.id,
     });
     await sendPasswordResetNotification({
-      email: authUser.email,
+      email: user.email,
       expiresAt,
-      resetUrl: createPasswordResetUrl(rawToken),
+      resetUrl,
     });
   }
 
-  return {
-    success: true as const,
-  };
+  return { success: true as const };
 };
 
 export const resetPasswordRecovery = async (
   prisma: AppPrismaClient,
   input: ResetPasswordInput
 ) => {
-  const passwordResetToken = await findPasswordResetTokenByHash(
+  const token = await findPasswordResetTokenByHash(
     prisma,
     hashToken(input.token)
   );
 
   if (
-    !passwordResetToken ||
-    passwordResetToken.usedAt ||
-    passwordResetToken.expiresAt <= new Date() ||
-    passwordResetToken.user.status !== "ACTIVE"
+    !token ||
+    token.usedAt ||
+    isPast(token.expiresAt) ||
+    token.user.status !== "ACTIVE"
   ) {
     throw ApiError.badRequest("Invalid or expired password reset token");
   }
 
   const passwordHash = await hashPassword(input.password);
-  const completedAt = new Date();
+  const now = new Date();
 
-  await prisma.$transaction(async (transaction) => {
-    await updateUserPasswordHash(
-      transaction,
-      passwordResetToken.userId,
-      passwordHash
-    );
-    await invalidateActivePasswordResetTokensForUser(
-      transaction,
-      passwordResetToken.userId,
-      completedAt
-    );
-    await revokeActiveSessionsForUser(
-      transaction,
-      passwordResetToken.userId,
-      completedAt
-    );
+  await prisma.$transaction(async (tx) => {
+    await updatePasswordHash(tx, token.userId, passwordHash);
+    await invalidatePasswordResetTokens(tx, token.userId, now);
+    await revokeUserSessions(tx, token.userId, now);
   });
 
-  return {
-    success: true as const,
-  };
+  return { success: true as const };
 };

@@ -67,16 +67,30 @@ export function BookingContactsStep({
 
         <div className="space-y-2">
           <Label htmlFor="phone" className={bookingLabelClass}>
-            Телефон
+            Телефон або месенджер
           </Label>
           <Input
             id="phone"
-            placeholder="+380..."
+            placeholder="+380... за бажанням"
             className={bookingControlClass}
             {...register("phone")}
           />
           <BookingFieldError message={errors.phone?.message} />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email" className={bookingLabelClass}>
+          Пошта
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="name@example.com за бажанням"
+          className={bookingControlClass}
+          {...register("email")}
+        />
+        <BookingFieldError message={errors.email?.message} />
       </div>
 
       <div className="space-y-2">

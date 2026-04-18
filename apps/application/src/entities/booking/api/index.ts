@@ -6,7 +6,7 @@ import {
   bookingStatusUpdateResultSchema,
 } from "@booking/contracts/admin";
 import type { BookingStatusUpdateResult } from "@booking/contracts/admin";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { apiRequest, getAuthHeaders } from "@/shared/api";
 import type { ApiResult } from "@/shared/api";
@@ -15,8 +15,23 @@ import type { Booking, BookingListResponse } from "../model/types";
 
 export const bookingQueryKeys = {
   all: ["bookings"] as const,
+  availability: (
+    domain: string,
+    date: string | null,
+    time: string | null,
+    guests: number | null
+  ) =>
+    [
+      ...bookingQueryKeys.availabilityAll(),
+      domain,
+      date,
+      time,
+      guests,
+    ] as const,
+  availabilityAll: () => [...bookingQueryKeys.all, "availability"] as const,
   list: (accessToken: string | null) =>
-    [...bookingQueryKeys.all, "list", accessToken] as const,
+    [...bookingQueryKeys.listAll(), accessToken] as const,
+  listAll: () => [...bookingQueryKeys.all, "list"] as const,
 };
 
 export const bookingApi = {
@@ -57,30 +72,3 @@ export const useBookingsQuery = (accessToken: string | null) =>
     queryFn: () => bookingApi.getList(accessToken ?? ""),
     queryKey: bookingQueryKeys.list(accessToken),
   });
-
-export const useUpdateBookingStatusMutation = (accessToken: string | null) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      bookingId,
-      status,
-    }: {
-      bookingId: string;
-      status: Booking["status"];
-    }) => bookingApi.updateStatus(accessToken ?? "", bookingId, status),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: bookingQueryKeys.all,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["customers"],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["tables"],
-        }),
-      ]);
-    },
-  });
-};

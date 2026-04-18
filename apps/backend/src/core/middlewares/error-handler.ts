@@ -1,8 +1,8 @@
 // oxlint-disable typescript/no-explicit-any
 import type { ErrorHandler } from "hono";
 
-import { ApiError, isApiError } from "../api-error";
-import { logger } from "../logger";
+import { ApiError, isApiError } from "../errors/api-error";
+import { logger } from "../logger/logger";
 import type { RequestContextVariables } from "../types";
 
 export const errorHandler: ErrorHandler<{

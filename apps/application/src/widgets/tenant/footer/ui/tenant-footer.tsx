@@ -1,3 +1,4 @@
+import { getYear } from "date-fns";
 import Link from "next/link";
 import * as React from "react";
 
@@ -6,7 +7,7 @@ interface TenantFooterProps {
 }
 
 export function TenantFooter({ restaurantName }: TenantFooterProps) {
-  const year = new Date().getFullYear();
+  const year = getYear(new Date());
 
   return (
     <footer className="px-4 pb-8 pt-4 lg:px-6">
